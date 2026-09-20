@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>p to the p</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&family=Red+Hat+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4effb;
+    --panel: #fbf8ff;
+    --ink: #241233;
+    --muted: #6f5d86;
+    --accent: #b4236e;
+    --on-accent: #ffffff;
+    --rule: #d9cdea;
+    --heaven-bg: #c7e0ff;
+    --heaven-border: #e0a900;
+    --heaven-glow-1: rgba(36,18,51,0.35);
+    --heaven-glow-2: rgba(224,169,0,0.45);
+    color-scheme: light dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #22102f;
+      --panel: #2c1740;
+      --ink: #f3eaff;
+      --muted: #a692bf;
+      --accent: #ffb547;
+      --on-accent: #22102f;
+      --rule: #43295a;
+      --heaven-bg: #0e1c3a;
+      --heaven-border: #fff1a8;
+      --heaven-glow-1: rgba(255,255,255,0.7);
+      --heaven-glow-2: rgba(255,221,102,0.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #22102f;
+    --panel: #2c1740;
+    --ink: #f3eaff;
+    --muted: #a692bf;
+    --accent: #ffb547;
+    --on-accent: #22102f;
+    --rule: #43295a;
+    --heaven-bg: #0e1c3a;
+    --heaven-border: #fff1a8;
+    --heaven-glow-1: rgba(255,255,255,0.7);
+    --heaven-glow-2: rgba(255,221,102,0.55);
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 0 20px 20px;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 0;
+  }
+  #number {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600;
+    font-size: clamp(2.4rem, 12vw, 6.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+  #p {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500;
+    font-size: clamp(1.2rem, 5vw, 2rem);
+    color: var(--accent);
+    margin: 0.7em 0 0;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  #p span { color: var(--muted); font-family: "Red Hat Display", system-ui, sans-serif; font-weight: 400; margin-right: 0.35em; }
+
+  .pq-row { display: flex; align-items: baseline; justify-content: center; gap: 1.1em; flex-wrap: wrap; }
+  .pq-row #p { margin: 0.7em 0 0; }
+  #q-display {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500; font-size: clamp(1.2rem, 5vw, 2rem); color: #ffb547;
+    margin: 0.7em 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  #q-display span:first-child { color: var(--muted); font-family: "Red Hat Display", system-ui, sans-serif; font-weight: 400; margin-right: 0.35em; }
+  #q-rate-line[hidden], #q-display[hidden] { display: none; }
+  #err { color: var(--accent); max-width: 36ch; }
+  #err[hidden] { display: none; }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer .rates { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+  footer b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .btn {
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    flex: none;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn:focus-visible, select:focus-visible, textarea:focus-visible, .drawer-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .btn.primary:disabled { background: none; border-color: var(--rule); color: var(--muted); font-weight: 400; cursor: not-allowed; }
+  .btn.danger { color: var(--muted); }
+  .btn.danger.armed { color: var(--accent); border-color: var(--accent); }
+
+  /* Upgrades drawer (pulls out from the left edge) */
+  .drawer {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: min(340px, 88vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 10;
+  }
+  .drawer.open { transform: none; }
+  .drawer-panel {
+    height: 100%;
+    background: var(--panel);
+    border-right: 1px solid var(--rule);
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)) calc(20px + env(safe-area-inset-left, 0px));
+    overflow: auto;
+    visibility: hidden;
+    transition: visibility 0s 0.25s;
+  }
+  .drawer.open .drawer-panel { visibility: visible; transition-delay: 0s; }
+  .drawer-panel h2 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; }
+  .drawer-panel > .hint { margin: 0 0 16px; }
+  .drawer-tab {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    margin-left: env(safe-area-inset-left, 0px);
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+    padding: 16px 9px;
+    cursor: pointer;
+  }
+  .drawer-tab[data-ready="true"]::after {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    margin-block-start: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(18, 6, 28, 0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 9;
+  }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  @media (min-width: 701px) { .scrim { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer, .scrim, .drawer-panel { transition: none; }
+  }
+
+  .upgrade { border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
+  .upgrade + .upgrade { margin-top: 12px; }
+  .up-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .up-head h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .up-level { color: var(--muted); font-size: 0.85rem; }
+  .up-desc { margin: 8px 0 12px; font-size: 0.86rem; line-height: 1.4; color: var(--muted); }
+  .up-stats { margin: 0 0 14px; display: grid; gap: 6px; }
+  .up-stats div { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+  .up-stats dt { color: var(--muted); }
+  .up-stats dd { margin: 0; font-family: "Red Hat Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+  .up-buy { width: 100%; }
+
+  .buy-mode { display: flex; gap: 6px; margin: 0 0 14px; }
+  .buy-mode-btn {
+    flex: 1; padding: 8px 0; border-radius: 10px; border: 1px solid var(--rule);
+    background: var(--panel); color: var(--ink); font-size: 0.88rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .buy-mode-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+  /* Settings sheet */
+  dialog {
+    border: 0;
+    padding: 0;
+    background: var(--panel);
+    color: var(--ink);
+    width: min(560px, 100%);
+    max-width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 14px;
+    margin: auto;
+    overflow: auto;
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(18, 6, 28, 0.6); }
+  @media (max-width: 600px) {
+    dialog { margin: auto 0 0; border-radius: 16px 16px 0 0; max-height: 88vh; max-height: 88dvh; }
+  }
+  .sheet { padding: 18px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sheet header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .sheet h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  .sheet h3 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 600; }
+  fieldset { border: 0; padding: 0; margin: 0 0 24px; min-width: 0; }
+  legend { padding: 0; margin-bottom: 10px; font-weight: 600; font-size: 0.95rem; }
+  .hint { color: var(--muted); font-size: 0.82rem; line-height: 1.4; margin: 8px 0 0; }
+
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg label, .opts label { position: relative; display: block; cursor: pointer; }
+  .seg input, .opts input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span {
+    display: block; text-align: center; padding: 10px 8px;
+    border: 1px solid var(--rule); border-radius: 8px; font-size: 0.9rem;
+  }
+  .seg input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .seg input:focus-visible + span, .opts input:focus-visible + .opt-body { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .opts { display: grid; gap: 6px; }
+  .opt-body {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 11px 12px; border: 1px solid var(--rule); border-radius: 8px;
+  }
+  .opt-name { font-size: 0.95rem; }
+  .opt-sample { font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.9rem; color: var(--muted); }
+  .opts input:checked + .opt-body { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opts input:checked + .opt-body .opt-sample { color: var(--accent); }
+
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .row .label { font-size: 0.9rem; color: var(--muted); }
+  select {
+    font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px;
+  }
+  textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.78rem;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 10px;
+    word-break: break-all;
+  }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  #status, #dev-status { min-height: 1.3em; margin: 12px 0 0; font-size: 0.85rem; color: var(--accent); }
+  [hidden] { display: none !important; }
+  .dev { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .toggle { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; cursor: pointer; }
+  .toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  #dev-panel { margin-top: 16px; }
+  #dev-panel h4 { margin: 18px 0 10px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+  #dev-panel h4:first-child { margin-top: 0; }
+  .field {
+    font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.85rem;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px;
+    width: 52%; min-width: 0;
+  }
+  .field:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  #ascend-btn { margin-bottom: 16px; animation: ascend-pulse 1.6s ease-in-out infinite; }
+  #ascend-btn.armed { animation: none; background: var(--ink); color: var(--bg); }
+  @keyframes ascend-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .btn-heaven {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.55);
+    color: #fff;
+  }
+  .btn-heaven:hover { border-color: rgba(255,255,255,0.9); }
+
+  .heaven {
+    position: fixed; inset: 10px;
+    border-radius: 20px;
+    background: var(--heaven-bg);
+    color: var(--ink);
+    z-index: 30;
+    overflow: auto;
+    border: 3px solid var(--heaven-border);
+    box-shadow: 0 0 12px 3px var(--heaven-glow-1), 0 0 46px 12px var(--heaven-glow-2), inset 0 0 30px rgba(255,241,168,0.12);
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .heaven[hidden] { display: none; }
+  .heaven-inner { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+  #heaven-back { align-self: flex-start; }
+  .heaven-title { margin: 6px 0 0; font-size: 1.3rem; font-weight: 600; }
+  .heaven-number {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600; font-size: clamp(2rem, 10vw, 4rem); margin: 4px 0;
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .heaven-boosts { color: var(--muted); font-size: 0.88rem; display: flex; flex-direction: column; gap: 2px; margin: 0 0 10px; }
+  .heaven-boosts b { color: var(--ink); font-family: "Red Hat Mono", ui-monospace, monospace; }
+  .heaven-click { font-size: 1.1rem; padding: 18px 34px; margin: 8px 0 4px; }
+  .ascension-points { color: var(--muted); font-size: 0.88rem; margin: 4px 0; }
+  .heaven-upgrades { width: 100%; margin-top: 26px; text-align: left; }
+  .heaven-upgrades h3 { margin: 0 0 12px; font-size: 1rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <section class="stage" aria-label="Game">
+    <button id="ascend-btn" class="btn primary" type="button" hidden>ASCEND</button>
+    <h1 id="number" aria-live="off">0</h1>
+    <div class="pq-row">
+      <p id="p"><span>p</span>1.0000</p>
+      <p id="q-display" class="q-line" hidden><span>q</span><span id="q-value">1.0000</span></p>
+    </div>
+    <p id="err" hidden>OmegaNum.js could not be loaded. Connect to the internet and reload, or save OmegaNum.js next to this file.</p>
+  </section>
+  <footer>
+    <div class="rates">
+      <div>Number gains <b id="rate-n">0</b> per second</div>
+      <div id="formula">p^p &minus; 1</div>
+      <div>p gains <b id="p-rate">0.001000</b> per second</div>
+      <div id="q-rate-line" class="q-line" hidden>q gains <b id="q-rate">0.005000</b> per second &middot; boosts formula &times;<b id="q-formula-mult">1.150</b></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="open-heaven" class="btn btn-heaven" type="button" hidden>&#10024;</button>
+      <button id="open-stats" class="btn" type="button">Stats</button>
+      <button id="open-settings" class="btn" type="button">Settings</button>
+    </div>
+  </footer>
+</main>
+
+<section id="heaven" class="heaven" hidden aria-label="The Heavenly Number">
+  <div class="heaven-inner">
+    <button id="heaven-back" class="btn" type="button">&larr; Back</button>
+    <p class="ascension-points" id="heaven-ap-1">Ascension points: 0</p>
+    <h2 class="heaven-title">The Heavenly Number</h2>
+    <p id="heaven-number" class="heaven-number">0</p>
+    <div class="heaven-boosts" id="heaven-boosts">
+      <div>p gain &times;<b id="hb-pmult">1.00</b></div>
+      <div>Number gain exponent &times;<b id="hb-nexp">1.00</b></div>
+      <div>Extra formula boost &times;<b id="hb-slight">1.000</b></div>
+    </div>
+    <button id="heaven-click" class="btn primary heaven-click" type="button">+1</button>
+    <div class="heaven-upgrades">
+      <p class="ascension-points" id="heaven-ap-2">Ascension points: 0</p>
+      <h3>Ascension upgrades</h3>
+      <div id="heaven-upgrade-list"></div>
+    </div>
+  </div>
+</section>
+
+<aside id="drawer" class="drawer" aria-label="Upgrades">
+  <div class="drawer-panel" id="drawer-panel">
+    <h2>Upgrades</h2>
+    <p class="hint">Buying spends p. You need the cost plus 1 p, so p never drops below 1.</p>
+    <div class="buy-mode" id="buy-mode-group" role="group" aria-label="Buy amount">
+      <button type="button" class="buy-mode-btn" data-mode="1">&times;1</button>
+      <button type="button" class="buy-mode-btn" data-mode="10">&times;10</button>
+      <button type="button" class="buy-mode-btn" data-mode="max">Max</button>
+    </div>
+    <div id="upgrade-list"></div>
+  </div>
+  <button id="drawer-tab" class="drawer-tab" type="button" aria-expanded="false" aria-controls="drawer-panel">Upgrades</button>
+</aside>
+<div id="scrim" class="scrim"></div>
+
+<dialog id="settings" aria-labelledby="settings-title">
+  <div class="sheet">
+    <header>
+      <h2 id="settings-title">Settings</h2>
+      <button id="close-settings" class="btn primary" type="button">Done</button>
+    </header>
+
+    <fieldset>
+      <legend>Theme</legend>
+      <div class="seg" id="theme-group"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Notation</legend>
+      <div class="opts" id="notation-group"></div>
+      <p class="hint">Abbreviations use K, M, B, T, Qa and so on up to Tg (1e93), then switch to scientific. Letters count a to z, then aa, ab and onward.</p>
+    </fieldset>
+
+    <section aria-labelledby="saving-title">
+      <h3 id="saving-title">Saving</h3>
+      <div class="row">
+        <span class="label" id="saved-label">Not saved yet</span>
+        <button id="save-now" class="btn" type="button">Save now</button>
+      </div>
+      <div class="row">
+        <label class="label" for="autosave">Autosave</label>
+        <select id="autosave"></select>
+      </div>
+      <label class="label" for="code" style="display:block;margin:16px 0 6px;font-size:0.9rem;color:var(--muted)">Save code</label>
+      <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Tap Export to get a code you can keep. Paste a code here and tap Import to load it."></textarea>
+      <div class="btns">
+        <button id="export" class="btn" type="button">Export</button>
+        <button id="import" class="btn" type="button">Import</button>
+        <button id="wipe" class="btn danger" type="button">Restart from zero</button>
+      </div>
+      <p id="status" role="status"></p>
+    </section>
+
+    <section class="dev" aria-labelledby="dev-title">
+      <h3 id="dev-title">Developer</h3>
+      <label class="toggle"><input type="checkbox" id="dev-toggle"><span>Developer mode</span></label>
+
+      <div id="dev-panel" hidden>
+        <h4>Rates</h4>
+        <div class="row">
+          <label class="label" for="dev-pgain">Base p gain per second</label>
+          <input id="dev-pgain" class="field" type="text" inputmode="decimal" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-speed">Game speed (&times;)</label>
+          <input id="dev-speed" class="field" type="text" inputmode="decimal" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="btns">
+          <button id="dev-apply-rates" class="btn primary" type="button">Apply rates</button>
+          <button id="dev-reset-rates" class="btn" type="button">Reset rates</button>
+        </div>
+
+        <h4>Values</h4>
+        <div class="row">
+          <label class="label" for="dev-number">Number</label>
+          <input id="dev-number" class="field" type="text" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-p">p</label>
+          <input id="dev-p" class="field" type="text" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-add">Additive level</label>
+          <input id="dev-add" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-mul">Multiplier level</label>
+          <input id="dev-mul" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-pro">Propulsion level</label>
+          <input id="dev-pro" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-exp">Exponent level</label>
+          <input id="dev-exp" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-hyper">Hyper Tower level</label>
+          <input id="dev-hyper" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="btns">
+          <button id="dev-apply-values" class="btn primary" type="button">Set values</button>
+        </div>
+        <p class="hint">Number and p accept scientific input such as 1e50. p must be at least 1, and levels are whole numbers from 0 to 1,000,000.</p>
+      </div>
+      <p id="dev-status" role="status"></p>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="stats" aria-labelledby="stats-title">
+  <div class="sheet">
+    <header>
+      <h2 id="stats-title">Stats</h2>
+      <button id="close-stats" class="btn primary" type="button">Done</button>
+    </header>
+
+    <section aria-labelledby="stats-record-title">
+      <h3 id="stats-record-title">Highest number reached</h3>
+      <p id="stats-record" style="font-family:'Red Hat Mono',ui-monospace,monospace;font-size:1.3rem;margin:0 0 6px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;"></p>
+      <p class="hint" id="stats-ascensions" style="margin:0 0 20px;"></p>
+    </section>
+
+    <section aria-labelledby="stats-graph-title">
+      <h3 id="stats-graph-title">Number over time</h3>
+      <div class="row">
+        <label class="label" for="stats-range">Range</label>
+        <select id="stats-range">
+          <option value="60">Last minute</option>
+          <option value="300">Last 5 minutes</option>
+          <option value="3600">Last hour</option>
+          <option value="0">All time</option>
+        </select>
+      </div>
+      <canvas id="stats-canvas" width="600" height="200" style="width:100%;height:170px;display:block;border:1px solid var(--rule);border-radius:8px;"></canvas>
+      <p class="hint">Shows log&#8321;&#8320; of your number, sampled every couple of seconds this session.</p>
+    </section>
+
+    <section aria-labelledby="stats-length-title">
+      <h3 id="stats-length-title">A sense of scale</h3>
+      <p class="hint">If your number was the amount of atoms perfectly compressed together, it would be <b id="stats-length-value">0</b> <span id="stats-length-unit">meters</span> across.</p>
+      <select id="stats-unit"></select>
+    </section>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  // Load OmegaNum.js: CDN first, then a local copy next to this file (for offline use).
+  var SOURCES = [
+    "https://cdn.jsdelivr.net/npm/omega_num.js@0.7.0",
+    "https://cdn.jsdelivr.net/npm/omega_num.js@0.7.0/OmegaNum.js",
+    "https://cdn.jsdelivr.net/npm/omega_num.js",
+    "OmegaNum.js"
+  ];
+
+  function load(i) {
+    if (typeof OmegaNum !== "undefined") return start();
+    if (i >= SOURCES.length) {
+      document.getElementById("err").hidden = false;
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = SOURCES[i];
+    s.onload = function () { load(i + 1); };
+    s.onerror = function () { load(i + 1); };
+    document.head.appendChild(s);
+  }
+
+  function start() {
+    var DEFAULT_P_RATE = 0.001; // base p per second
+    var SAVE_KEY = "pp-game-save-v2";
+    var SETTINGS_KEY = "pp-game-settings-v1";
+
+    var THEMES = [["system", "System"], ["light", "Light"], ["dark", "Dark"]];
+    var NOTATIONS = [
+      ["scientific", "Scientific"],
+      ["engineering", "Engineering"],
+      ["abbreviations", "Abbreviations"],
+      ["letters", "Letters"],
+      ["logarithm", "Logarithm"]
+    ];
+    var AUTOSAVES = [[10, "Every 10 seconds"], [30, "Every 30 seconds"], [60, "Every minute"], [0, "Off"]];
+
+    function $(id) { return document.getElementById(id); }
+    function has(list, v) { return list.some(function (x) { return x[0] === v; }); }
+
+    var storageOK = (function () {
+      try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; }
+      catch (e) { return false; }
+    })();
+
+    // ---------- settings ----------
+    var settings = {
+      theme: "system", notation: "scientific", autosave: 10,
+      devMode: false, devPGain: DEFAULT_P_RATE, devSpeed: 1
+    };
+    (function () {
+      if (!storageOK) return;
+      try {
+        var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+        if (!s) return;
+        if (has(THEMES, s.theme)) settings.theme = s.theme;
+        if (has(NOTATIONS, s.notation)) settings.notation = s.notation;
+        if (has(AUTOSAVES, s.autosave)) settings.autosave = s.autosave;
+        if (s.devMode === true) settings.devMode = true;
+        if (typeof s.devPGain === "number" && isFinite(s.devPGain) && s.devPGain >= 0) settings.devPGain = s.devPGain;
+        if (typeof s.devSpeed === "number" && isFinite(s.devSpeed) && s.devSpeed > 0 && s.devSpeed <= 1e6) settings.devSpeed = s.devSpeed;
+      } catch (e) {}
+    })();
+
+    function saveSettings() {
+      if (!storageOK) return;
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
+    }
+
+    function applyTheme() {
+      var r = document.documentElement;
+      if (settings.theme === "system") r.removeAttribute("data-theme");
+      else r.setAttribute("data-theme", settings.theme);
+    }
+    applyTheme();
+
+    // Developer mode overrides (only active while the toggle is on)
+    function baseRate() { return settings.devMode ? settings.devPGain : DEFAULT_P_RATE; }
+    function gameSpeed() { return settings.devMode ? settings.devSpeed : 1; }
+
+    // ---------- number formatting ----------
+    var ABBR = ["K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd","Td","Qad","Qid","Sxd","Spd","Ocd","Nod",
+                "Vg","Uvg","Dvg","Tvg","Qavg","Qivg","Sxvg","Spvg","Ocvg","Novg","Tg"];
+
+    function letters(i) {
+      var s = "";
+      while (i > 0) { i--; s = String.fromCharCode(97 + (i % 26)) + s; i = Math.floor(i / 26); }
+      return s;
+    }
+
+    function plain(v, d) {
+      if (!(v > 0)) return (0).toFixed(d);
+      if (v < 1) {
+        var dec = Math.min(12, d + Math.max(0, -Math.floor(Math.log10(v))));
+        return v.toFixed(dec);
+      }
+      return v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    // Split x into mantissa (1 to <10) and integer exponent, or null if the exponent itself is enormous.
+    function decompose(x) {
+      if (x.lt(1e300)) {
+        var parts = x.toNumber().toExponential(12).split("e");
+        return { m: parseFloat(parts[0]), e: parseInt(parts[1], 10) };
+      }
+      var lg = x.log10();
+      if (lg.gte(1e15)) return null;
+      var L = lg.toNumber(), e = Math.floor(L);
+      return { m: Math.pow(10, L - e), e: e };
+    }
+
+    function expStr(e) {
+      if (e < 1e9) return String(e);
+      var parts = e.toExponential(12).split("e");
+      return sci(parseFloat(parts[0]), parseInt(parts[1], 10), 3);
+    }
+
+    function sci(m, e, d) {
+      var s = m.toFixed(d);
+      if (parseFloat(s) >= 10) { m /= 10; e += 1; s = m.toFixed(d); }
+      return s + "e" + expStr(e);
+    }
+
+    function eng(m, e, d) {
+      var r = e % 3, e3 = e - r, m3 = m * Math.pow(10, r), s = m3.toFixed(d);
+      if (parseFloat(s) >= 1000) { e3 += 3; m3 /= 1000; s = m3.toFixed(d); }
+      return { s: s, e3: e3 };
+    }
+
+    function format(x, d, notation) {
+      var short = notation === "abbreviations" || notation === "letters";
+      if (x.lt(short ? 1e3 : 1e6)) return plain(x.toNumber(), d);
+
+      var dc = decompose(x);
+      if (!dc) return x.toString().replace(/^(\d+\.\d{3})\d+/, "$1");
+
+      var g, idx;
+      switch (notation) {
+        case "engineering":
+          g = eng(dc.m, dc.e, 2);
+          return g.s + "e" + expStr(g.e3);
+        case "abbreviations":
+          g = eng(dc.m, dc.e, 2);
+          idx = g.e3 / 3;
+          if (idx <= ABBR.length) return g.s + " " + ABBR[idx - 1];
+          return sci(dc.m, dc.e, 3);
+        case "letters":
+          g = eng(dc.m, dc.e, 2);
+          idx = g.e3 / 3;
+          if (idx <= 18278) return g.s + " " + letters(idx);
+          return sci(dc.m, dc.e, 3);
+        case "logarithm":
+          return "e" + x.log10().toNumber().toFixed(3);
+        default:
+          return sci(dc.m, dc.e, 3);
+      }
+    }
+
+    function fmt(x, d) { return format(x, d, settings.notation); }
+    function fmtN(v, d) { return fmt(new OmegaNum(v), d); } // for plain JS numbers
+    function pct(v) { return Math.round(v * 100).toLocaleString() + "%"; }
+
+    // ---------- game state ----------
+    var number = new OmegaNum(0);
+    var p = new OmegaNum(1);
+    var levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0 };
+    var costs = {};
+    var maxNumber = new OmegaNum(0); // highest number ever reached
+
+    // Ascension
+    var ASCEND_THRESHOLD = new OmegaNum(2).pow(1024); // ~1.8e308, right at the wall of a double
+    var heavenlyNumber = new OmegaNum(0); // earned by tapping in the heaven screen
+    var ascensionPoints = new OmegaNum(0); // spendable currency, earned by ascending (+1 per ascension)
+    var hasAscendedUnlocked = false;
+    var totalAscensions = 0; // stat: how many times Ascend has been confirmed, ever
+    var ascensionUpgrades = { heavenlyGale: false, heavenlyStrikedown: false, kinetic: false, ascendantVariable: false, perfection: false };
+    var q = new OmegaNum(0); // "The Ascendant Variable" \u2014 starts at 1 once unlocked, grows 0.005/s
+
+    var ASCENSION_UPS = [
+      {
+        id: "heavenlyGale", name: "Heavenly Gale", cost: 1, requires: null,
+        desc: "A one-time buy. Gives a permanent \u00d71.5 boost to p gain, back in the mortal game too."
+      },
+      {
+        id: "heavenlyStrikedown", name: "Heavenly Strikedown", cost: 1, requires: "heavenlyGale",
+        desc: "A one-time buy. Adds +1.5 to p in the formula, multiplies p by \u00d71.4 on both sides of the formula, and raises p to the ^1.05 power in the formula."
+      },
+      {
+        id: "kinetic", name: "Kinetic", cost: 2, requires: "heavenlyStrikedown",
+        desc: "A one-time buy. Adds a logarithmic bonus to the formula based on your current p amount."
+      },
+      {
+        id: "ascendantVariable", name: "The Ascendant Variable", cost: 3, requires: "kinetic",
+        desc: "A one-time buy. Unlocks a new variable, q, starting at 1 and growing 0.005/s. q boosts p gain by log10(q) + 1, and boosts the p formula by +15% across the board (exponent, multiplier, and p itself)."
+      },
+      {
+        id: "perfection", name: "Perfection", cost: 6, requires: "ascendantVariable",
+        desc: "A one-time buy. Gives \u00d71.25 q gain, \u00d71.5 p gain, doubles the additive in the p formula, multiplies the formula's shared multiplier by \u00d71.6\u03056 (both sides), and adds a static ^1.05 exponent to p in the formula. Also unlocks the Hyper Tower upgrade back in the mortal game."
+      }
+    ];
+
+    // Number freezes hard at the wall every single run \u2014 Ascend is required every time you reach it.
+    function numberFrozen() { return number.gte(ASCEND_THRESHOLD); }
+    function heavenlyPMult() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.1).add(1).toNumber() : 1; }
+    function heavenlyNExp() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.05).add(1).toNumber() : 1; }
+    function heavenlySlightBoost() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.001).add(1).toNumber() : 1; }
+    function galeMult() { return ascensionUpgrades.heavenlyGale ? 1.5 : 1; }
+    function qPBoost() { return (ascensionUpgrades.ascendantVariable && q.gte(1)) ? q.log10().add(1).toNumber() : 1; }
+    // Your current p amount very slightly boosts p gain: log10(p^0.01) + 1 = 0.01*log10(p) + 1.
+    function selfPBoost(pv) { return pv.gte(1) ? pv.log10().mul(0.01).add(1).toNumber() : 1; }
+    function perfectionPMult() { return ascensionUpgrades.perfection ? 1.5 : 1; }
+    var STRIKE_ADD = 1.5, STRIKE_MUL = 1.4, STRIKE_EXP = 1.05, Q_FORMULA_BOOST = 1.15;
+    var PERFECTION_ADD_MUL = 2, PERFECTION_MUL = 5 / 3, PERFECTION_EXP = 1.05, PERFECTION_Q_MUL = 1.25;
+
+    // Number very slightly boosts p gain: log10(n^0.00001) = 0.00001 * log10(n), never below 0.
+    // Soft capped, and MUCH harder past 10^308 (right around where doubles start to overflow) \u2014
+    // growth asymptotically approaches a ceiling instead of continuing to scale with log10(n).
+    function numberPBonus(n) {
+      if (n.lte(1)) return 0;
+      var lg = n.log10().toNumber();
+      if (!isFinite(lg)) lg = 1e18;
+      var THRESH = 308;
+      var raw;
+      if (lg <= THRESH) {
+        raw = lg * 0.00001;
+      } else {
+        var atThresh = THRESH * 0.00001;
+        var excess = lg - THRESH;
+        raw = atThresh + 0.002 * (1 - 1 / (1 + excess / 1e6));
+      }
+      return raw > 0 ? raw : 0;
+    }
+
+    // Derived values (recomputed whenever a level changes)
+    var potency = 1;    // Additive potency from Propulsion
+    var addBonus = 0;   // added to p inside the formula
+    var mulFactor = 1;  // multiplies the gain formula
+    var expBoost = 1;   // extra exponent multiplier from the Exponent upgrade
+    var hyperBoost = 1; // extra exponent multiplier from the Hyper Tower upgrade
+    var pRate = DEFAULT_P_RATE; // p gained per second
+
+    // Upgrade definitions
+    var UPS = [
+      {
+        id: "add", name: "Additive", base: 0.1, mult: 1.25,
+        desc: "Adds +0.2 to p inside the gain formula for each level. Your actual p amount isn't changed. Cost grows \u00d71.25 per level, escalating further with each purchase.",
+        labels: ["Bonus to p"],
+        values: function () { return ["+" + fmtN(addBonus, 2)]; }
+      },
+      {
+        id: "mul", name: "Multiplier", base: 2, mult: 2,
+        desc: "Multiplies the gain formula by \u00d71.1, and by +\u00d70.1 more for each further level. Also makes p gain 6% faster per level. Cost grows \u00d72 per level, escalating further with each purchase.",
+        labels: ["Gain multiplier", "p gain"],
+        values: function () { return ["\u00d7" + fmtN(mulFactor, 2), "+" + pct(0.06 * levels.mul)]; }
+      },
+      {
+        id: "pro", name: "Propulsion", base: 10, mult: 3,
+        desc: "Makes Additive 10% more potent per level and p gain 0.1% faster per level. Once owned, the exponent p is multiplied by log10(number^(1/100)) + 1, softly capped past \u00d71.25 so it keeps climbing without going astronomical. Cost grows \u00d73 per level, escalating further with each purchase.",
+        labels: ["Additive potency", "p gain", "Exponent boost"],
+        values: function () {
+          return ["+" + pct(0.1 * levels.pro), "+" + pct(0.001 * levels.pro), "\u00d7" + fmt(kBoost(number), 2)];
+        }
+      },
+      {
+        id: "exp", name: "Exponent", base: 50, mult: 10,
+        desc: "Raises the exponent used in the gain formula by an extra \u00d71.02 per level, compounding. Cost grows \u00d710 per level, escalating further with each purchase.",
+        labels: ["Exponent boost"],
+        values: function () { return ["\u00d7" + fmtN(expBoost, 3)]; }
+      },
+      {
+        id: "hyper", name: "Hyper Tower", base: 125, mult: 5, unlockedBy: "perfection",
+        desc: "Unlocked by the Perfection ascension upgrade. Raises the exponent used in the gain formula by an extra \u00d71.05 per level, compounding. Cost grows \u00d75 per level, escalating further with each purchase.",
+        labels: ["Exponent boost"],
+        values: function () { return ["\u00d7" + fmtN(hyperBoost, 3)]; }
+      }
+    ];
+
+    // Cost of a single upgrade level grows geometrically: base * ratio^L, where ratio = mult * 1.25
+    // (each purchase's price ratio is boosted x1.25 over the upgrade's own base multiplier). This
+    // keeps the curve smooth and sustainable for long-run play, rather than exploding without bound.
+    function costRatio(u) { return u.mult * 1.25; }
+
+    // Total cost of buying `count` more levels starting from level `fromLevel`, via the geometric
+    // series sum \u2014 closed form, so bulk-buy math stays fast even at huge levels.
+    function costOfLevels(u, fromLevel, count) {
+      if (count <= 0) return new OmegaNum(0);
+      var r = costRatio(u);
+      var seriesSum = (Math.pow(r, count) - 1) / (r - 1);
+      return new OmegaNum(r).pow(fromLevel).mul(u.base * seriesSum);
+    }
+
+    // How many more levels of `u` can be bought right now (binary search over the closed-form cost).
+    function maxAffordable(u) {
+      var budget = p.sub(1); // keep p from ever hitting 0
+      if (budget.lt(0)) return 0;
+      var lo = 0, hi = 1;
+      while (hi < 1e7 && costOfLevels(u, levels[u.id], hi).lte(budget)) hi *= 2;
+      if (costOfLevels(u, levels[u.id], 1).gt(budget)) return 0;
+      while (lo < hi) {
+        var mid = Math.ceil((lo + hi) / 2);
+        if (costOfLevels(u, levels[u.id], mid).lte(budget)) lo = mid; else hi = mid - 1;
+      }
+      return lo;
+    }
+
+    function updateDerived() {
+      UPS.forEach(function (u) {
+        costs[u.id] = new OmegaNum(costRatio(u)).pow(levels[u.id]).mul(u.base);
+      });
+      potency = 1 + 0.1 * levels.pro;
+      addBonus = 0.2 * levels.add * potency;
+      mulFactor = 1 + 0.1 * levels.mul;
+      expBoost = Math.pow(1.02, levels.exp);
+      hyperBoost = Math.pow(1.05, levels.hyper);
+      pRate = baseRate() * (1 + 0.06 * levels.mul) * (1 + 0.001 * levels.pro);
+    }
+    updateDerived();
+
+    // Propulsion: multiplier on the exponent p = log10(number^(1/100)) + 1 = log10(number)/100 + 1,
+    // soft-capped past x1.25 so it keeps growing but stops going astronomical. Past the cap, the
+    // excess grows by square root instead of linearly \u2014 tapered, but still a potent climb.
+    // Only active once Propulsion is owned, and never below 1 (so numbers under 1 don't shrink it).
+    var K_SOFTCAP = 1.25;
+    function kBoost(n) {
+      if (levels.pro < 1 || n.lte(1)) return new OmegaNum(1);
+      var raw = n.log10().div(100).add(1);
+      if (raw.lte(K_SOFTCAP)) return raw;
+      return raw.sub(K_SOFTCAP).pow(0.5).add(K_SOFTCAP);
+    }
+
+    // Number gain per second:
+    //   mulFactor * ( b ^ (b * k * expBoost * heavenlyNExp * heavenlySlight) - 1 ) * heavenlySlight,
+    //   b = p + addBonus,   k = kBoost(number)
+    // Number gain per second. Ascension upgrades layer on:
+    //   Strikedown: p^1.05, then +1.5 additive, then \u00d71.4 (applied to b, so it reaches both the
+    //     base and the exponent since the exponent is built from b).
+    //   Kinetic: + log10(p) additive, based on current p.
+    //   Ascendant Variable (q): \u00d71.15 to p itself, to the exponent, and to the final result.
+    function rate(pv, n) {
+      var hasStrike = ascensionUpgrades.heavenlyStrikedown;
+      var hasKinetic = ascensionUpgrades.kinetic;
+      var hasQ = ascensionUpgrades.ascendantVariable;
+      var hasPerfection = ascensionUpgrades.perfection;
+
+      var pEff = hasStrike ? pv.pow(STRIKE_EXP) : pv;
+      if (hasPerfection) pEff = pEff.pow(PERFECTION_EXP);
+      if (hasQ) pEff = pEff.mul(Q_FORMULA_BOOST);
+
+      var kineticBonus = (hasKinetic && pv.gte(1)) ? pv.log10().toNumber() : 0;
+      var extraAdd = addBonus + (hasStrike ? STRIKE_ADD : 0) + kineticBonus;
+      if (hasPerfection) extraAdd *= PERFECTION_ADD_MUL;
+
+      var b = pEff.add(extraAdd);
+      if (hasStrike) b = b.mul(STRIKE_MUL);
+      if (hasPerfection) b = b.mul(PERFECTION_MUL);
+
+      var slight = heavenlySlightBoost();
+      var e = b.mul(kBoost(n)).mul(expBoost).mul(hyperBoost).mul(heavenlyNExp()).mul(slight);
+      if (hasQ) e = e.mul(Q_FORMULA_BOOST);
+
+      var r = b.pow(e).sub(1).mul(mulFactor).mul(slight);
+      if (hasQ) r = r.mul(Q_FORMULA_BOOST);
+
+      return r.lt(0) ? new OmegaNum(0) : r;
+    }
+
+    function step(dt) {
+      var totalPRate = (pRate + numberPBonus(number)) * heavenlyPMult() * galeMult() * qPBoost() * selfPBoost(p) * perfectionPMult();
+      var pm = p.add(totalPRate * dt / 2); // midpoint for better accuracy
+      if (!numberFrozen()) {
+        number = number.add(rate(pm, number).mul(dt));
+        if (number.gte(ASCEND_THRESHOLD)) number = ASCEND_THRESHOLD;
+      }
+      p = p.add(totalPRate * dt);
+      if (ascensionUpgrades.ascendantVariable) q = q.add(0.005 * dt * (ascensionUpgrades.perfection ? PERFECTION_Q_MUL : 1));
+      if (number.gt(maxNumber)) maxNumber = number;
+    }
+
+    function advance(dt) {
+      if (dt <= 0) return;
+      if (dt <= 1) { step(dt); return; }
+      var steps = Math.min(4000, Math.ceil(dt));
+      var h = dt / steps;
+      for (var i = 0; i < steps; i++) step(h);
+    }
+
+    function canBuy(id) { return p.gte(costs[id].add(1)); }
+
+    var buyMode = 1; // 1, 10, or "max"
+
+    function buyAmount(u) {
+      if (buyMode === "max") return maxAffordable(u);
+      return Math.min(buyMode, maxAffordable(u));
+    }
+
+    function buy(id) {
+      var u = UPS.filter(function (x) { return x.id === id; })[0];
+      var n = buyAmount(u);
+      if (n <= 0) return;
+      var cost = costOfLevels(u, levels[id], n);
+      p = p.sub(cost);
+      if (p.lt(1)) p = new OmegaNum(1); // guard against float rounding
+      levels[id] += n;
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+    }
+
+    // ---------- saving ----------
+    var lastSaved = null;
+
+    function snapshot() {
+      return {
+        v: 4, n: number.toString(), p: p.toString(),
+        l: { a: levels.add, m: levels.mul, r: levels.pro, e: levels.exp, h: levels.hyper },
+        mx: maxNumber.toString(),
+        hn: heavenlyNumber.toString(),
+        ap: ascensionPoints.toString(),
+        q: q.toString(),
+        hu: hasAscendedUnlocked,
+        ta: totalAscensions,
+        au: {
+          g: ascensionUpgrades.heavenlyGale,
+          s: ascensionUpgrades.heavenlyStrikedown,
+          k: ascensionUpgrades.kinetic,
+          a: ascensionUpgrades.ascendantVariable,
+          p: ascensionUpgrades.perfection
+        },
+        t: Date.now()
+      };
+    }
+
+    function cleanLevel(v) {
+      return (typeof v === "number" && isFinite(v) && v >= 0) ? Math.floor(v) : 0;
+    }
+
+    function parseSnapshot(d) {
+      try {
+        if (!d || typeof d.n !== "string" || typeof d.p !== "string") return null;
+        var n = new OmegaNum(d.n), pp = new OmegaNum(d.p);
+        if (n.isNaN() || pp.isNaN() || n.lt(0) || pp.lt(1)) return null;
+        var l = (d.l && typeof d.l === "object") ? d.l : { a: d.a }; // older saves stored only Additive as "a"
+        var mx = null;
+        try { if (typeof d.mx === "string") { var m = new OmegaNum(d.mx); if (!m.isNaN() && m.gte(0)) mx = m; } } catch (e) {}
+        var hn = null;
+        try { if (typeof d.hn === "string") { var h = new OmegaNum(d.hn); if (!h.isNaN() && h.gte(0)) hn = h; } } catch (e) {}
+        var ap = null;
+        try { if (typeof d.ap === "string") { var a = new OmegaNum(d.ap); if (!a.isNaN() && a.gte(0)) ap = a; } } catch (e) {}
+        var qq = null;
+        try { if (typeof d.q === "string") { var qv = new OmegaNum(d.q); if (!qv.isNaN() && qv.gte(0)) qq = qv; } } catch (e) {}
+        var auRaw = (d.au && typeof d.au === "object") ? d.au : {};
+        return {
+          n: n, p: pp,
+          l: { add: cleanLevel(l.a), mul: cleanLevel(l.m), pro: cleanLevel(l.r), exp: cleanLevel(l.e), hyper: cleanLevel(l.h) },
+          mx: mx,
+          hn: hn,
+          ap: ap,
+          q: qq,
+          hu: d.hu === true,
+          ta: cleanLevel(d.ta),
+          au: {
+            heavenlyGale: auRaw.g === true || d.hg === true, // d.hg: fallback for older saves
+            heavenlyStrikedown: auRaw.s === true,
+            kinetic: auRaw.k === true,
+            ascendantVariable: auRaw.a === true,
+            perfection: auRaw.p === true
+          },
+          t: typeof d.t === "number" ? d.t : Date.now()
+        };
+      } catch (e) { return null; }
+    }
+
+    function applySnapshot(snap) {
+      number = snap.n; p = snap.p;
+      levels = { add: snap.l.add, mul: snap.l.mul, pro: snap.l.pro, exp: snap.l.exp, hyper: snap.l.hyper };
+      maxNumber = (snap.mx && snap.mx.gte(number)) ? snap.mx : number;
+      heavenlyNumber = snap.hn || new OmegaNum(0);
+      ascensionPoints = snap.ap || new OmegaNum(0);
+      q = snap.q || new OmegaNum(0);
+      hasAscendedUnlocked = snap.hu;
+      totalAscensions = snap.ta;
+      ascensionUpgrades = snap.au;
+      updateDerived();
+    }
+
+    function save() {
+      if (!storageOK) return false;
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()));
+        lastSaved = Date.now();
+        updateSavedLabel();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function loadSave() {
+      if (!storageOK) return 0;
+      try {
+        var snap = parseSnapshot(JSON.parse(localStorage.getItem(SAVE_KEY) || "null"));
+        if (!snap) return 0;
+        applySnapshot(snap);
+        lastSaved = snap.t;
+        return Math.max(0, (Date.now() - snap.t) / 1000);
+      } catch (e) { return 0; }
+    }
+
+    advance(loadSave());
+
+    // ---------- upgrade cards ----------
+    var drawer = $("drawer"), tab = $("drawer-tab"), scrim = $("scrim");
+
+    function buildUpgrades() {
+      var list = $("upgrade-list");
+      UPS.forEach(function (u) {
+        var art = document.createElement("article");
+        art.className = "upgrade";
+
+        var head = document.createElement("div");
+        head.className = "up-head";
+        var h3 = document.createElement("h3");
+        h3.textContent = u.name;
+        var lv = document.createElement("span");
+        lv.className = "up-level";
+        lv.appendChild(document.createTextNode("Level "));
+        var lvNum = document.createElement("b");
+        lvNum.textContent = "0";
+        lv.appendChild(lvNum);
+        head.appendChild(h3); head.appendChild(lv);
+
+        var desc = document.createElement("p");
+        desc.className = "up-desc";
+        desc.textContent = u.desc;
+
+        var dl = document.createElement("dl");
+        dl.className = "up-stats";
+        u.dds = [];
+        u.labels.concat(["Cost"]).forEach(function (label) {
+          var row = document.createElement("div");
+          var dt = document.createElement("dt");
+          dt.textContent = label;
+          var dd = document.createElement("dd");
+          row.appendChild(dt); row.appendChild(dd);
+          dl.appendChild(row);
+          u.dds.push(dd);
+        });
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn primary up-buy";
+        btn.addEventListener("click", function () { buy(u.id); });
+
+        art.appendChild(head); art.appendChild(desc); art.appendChild(dl); art.appendChild(btn);
+        list.appendChild(art);
+        u.levelEl = lvNum; u.btn = btn; u.el = art;
+      });
+    }
+
+    function renderUpgrades() {
+      UPS.forEach(function (u) {
+        var locked = u.unlockedBy && !ascensionUpgrades[u.unlockedBy];
+        u.el.hidden = locked;
+        if (locked) return;
+        u.levelEl.textContent = levels[u.id].toLocaleString();
+        var vals = u.values();
+        for (var i = 0; i < vals.length; i++) u.dds[i].textContent = vals[i];
+        var n = buyAmount(u);
+        var totalCost = n > 0 ? costOfLevels(u, levels[u.id], n) : costs[u.id];
+        u.dds[vals.length].textContent = fmt(totalCost, 2) + " p" + (n > 1 ? " (\u00d7" + n + ")" : "");
+        if (n > 0) {
+          u.btn.disabled = false;
+          u.btn.textContent = "Buy \u00d7" + n.toLocaleString() + " for " + fmt(totalCost, 2) + " p";
+        } else {
+          u.btn.disabled = true;
+          u.btn.textContent = "Need " + fmt(costs[u.id].add(1), 2) + " p";
+        }
+      });
+    }
+
+    function anyAffordable() {
+      return UPS.some(function (u) { return !(u.unlockedBy && !ascensionUpgrades[u.unlockedBy]) && canBuy(u.id); });
+    }
+
+    var buyModeButtons = Array.prototype.slice.call(document.querySelectorAll(".buy-mode-btn"));
+    function setBuyMode(mode) {
+      buyMode = mode === "max" ? "max" : parseInt(mode, 10);
+      buyModeButtons.forEach(function (b) {
+        b.classList.toggle("active", b.dataset.mode === String(mode));
+      });
+      renderUpgrades();
+    }
+    buyModeButtons.forEach(function (b) {
+      b.addEventListener("click", function () { setBuyMode(b.dataset.mode); });
+    });
+
+    // ---------- rendering ----------
+    var numberEl = $("number"), pEl = $("p"), rateEl = $("rate-n"), formulaEl = $("formula"), pRateEl = $("p-rate");
+
+    function formulaText(k) {
+      var base = addBonus > 0 ? "(p + " + fmtN(addBonus, 2) + ")" : "p";
+      var combinedK = k.mul(expBoost).mul(hyperBoost);
+      var showExp = levels.pro > 0 || levels.exp > 0 || levels.hyper > 0;
+      var core = base + "^" + (showExp ? "(" + base + " \u00d7 " + fmt(combinedK, 2) + ")" : base) + " \u2212 1";
+      return levels.mul > 0 ? fmtN(mulFactor, 2) + " \u00d7 (" + core + ")" : core;
+    }
+
+    function render() {
+      numberEl.textContent = fmt(number, 2);
+      pEl.innerHTML = "<span>p</span>" + fmt(p, 4);
+      rateEl.textContent = fmt(rate(p, number), 2);
+      pRateEl.textContent = fmtN((pRate + numberPBonus(number)) * heavenlyPMult() * galeMult() * qPBoost() * selfPBoost(p) * perfectionPMult(), 2);
+      formulaEl.textContent = formulaText(kBoost(number));
+      var open = drawer.classList.contains("open");
+      if (open) renderUpgrades();
+      tab.dataset.ready = (!open && anyAffordable()) ? "true" : "false";
+
+      var ascendBtn = $("ascend-btn");
+      ascendBtn.hidden = number.lt(ASCEND_THRESHOLD);
+      $("open-heaven").hidden = !hasAscendedUnlocked;
+
+      var qOn = ascensionUpgrades.ascendantVariable;
+      $("q-display").hidden = !qOn;
+      $("q-rate-line").hidden = !qOn;
+      if (qOn) {
+        $("q-value").textContent = fmt(q, 4);
+        $("q-formula-mult").textContent = Q_FORMULA_BOOST.toFixed(3);
+      }
+    }
+
+    // ---------- upgrades drawer ----------
+    function setDrawer(open) {
+      drawer.classList.toggle("open", open);
+      scrim.classList.toggle("on", open);
+      tab.setAttribute("aria-expanded", String(open));
+      render();
+    }
+    tab.addEventListener("click", function () { setDrawer(!drawer.classList.contains("open")); });
+    scrim.addEventListener("click", function () { setDrawer(false); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && drawer.classList.contains("open") && !$("settings").open) setDrawer(false);
+    });
+    buildUpgrades();
+    setBuyMode(1);
+
+    // ---------- settings UI ----------
+    var dlg = $("settings");
+    var statusEl = $("status");
+    var codeEl = $("code");
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+    function updateSavedLabel() {
+      var el = $("saved-label");
+      if (!storageOK) el.textContent = "Saving is unavailable here. Use Export to keep your progress.";
+      else if (!lastSaved) el.textContent = "Not saved yet";
+      else el.textContent = "Last saved " + new Date(lastSaved).toLocaleTimeString();
+    }
+
+    function buildThemes() {
+      var box = $("theme-group");
+      THEMES.forEach(function (t) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "theme"; input.value = t[0];
+        input.checked = settings.theme === t[0];
+        var span = document.createElement("span");
+        span.textContent = t[1];
+        label.appendChild(input); label.appendChild(span);
+        box.appendChild(label);
+      });
+      box.addEventListener("change", function (e) {
+        settings.theme = e.target.value;
+        applyTheme(); saveSettings();
+      });
+    }
+
+    function buildNotations() {
+      var box = $("notation-group");
+      var sample = new OmegaNum("4.5678e34");
+      NOTATIONS.forEach(function (n) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "notation"; input.value = n[0];
+        input.checked = settings.notation === n[0];
+        var body = document.createElement("span");
+        body.className = "opt-body";
+        var name = document.createElement("span");
+        name.className = "opt-name"; name.textContent = n[1];
+        var ex = document.createElement("span");
+        ex.className = "opt-sample"; ex.textContent = format(sample, 2, n[0]);
+        body.appendChild(name); body.appendChild(ex);
+        label.appendChild(input); label.appendChild(body);
+        box.appendChild(label);
+      });
+      box.addEventListener("change", function (e) {
+        settings.notation = e.target.value;
+        saveSettings(); render();
+      });
+    }
+
+    function buildAutosave() {
+      var sel = $("autosave");
+      AUTOSAVES.forEach(function (a) {
+        var o = document.createElement("option");
+        o.value = String(a[0]); o.textContent = a[1];
+        if (settings.autosave === a[0]) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function () {
+        settings.autosave = parseInt(sel.value, 10);
+        saveSettings();
+        setStatus(settings.autosave ? "Autosave set." : "Autosave is off. Use Save now to keep progress.");
+      });
+    }
+
+    buildThemes(); buildNotations(); buildAutosave(); updateSavedLabel();
+
+    $("open-settings").addEventListener("click", function () {
+      setStatus(""); setDevStatus(""); updateSavedLabel(); fillDev();
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    });
+    $("close-settings").addEventListener("click", function () {
+      if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+    });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+
+    $("save-now").addEventListener("click", function () {
+      setStatus(save() ? "Saved." : "Couldn't save in this browser. Use Export instead.");
+    });
+
+    function legacyCopy() { try { return document.execCommand("copy"); } catch (e) { return false; } }
+    function copyText(t) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(t).then(function () { return true; }, function () { return legacyCopy(); });
+      }
+      return Promise.resolve(legacyCopy());
+    }
+
+    $("export").addEventListener("click", function () {
+      var code = btoa(JSON.stringify(snapshot()));
+      codeEl.value = code;
+      codeEl.focus(); codeEl.select();
+      copyText(code).then(function (ok) {
+        setStatus(ok ? "Save code copied." : "Save code ready. Copy it from the box.");
+      });
+    });
+
+    $("import").addEventListener("click", function () {
+      var raw = codeEl.value.replace(/\s+/g, "");
+      if (!raw) { setStatus("Paste a save code first."); return; }
+      var snap = null;
+      try { snap = parseSnapshot(JSON.parse(atob(raw))); } catch (e) {}
+      if (!snap) { setStatus("That save code isn't valid."); return; }
+      applySnapshot(snap);
+      save(); render();
+      setStatus("Save imported.");
+    });
+
+    var wipeBtn = $("wipe"), wipeTimer = null;
+    function disarm() {
+      clearTimeout(wipeTimer);
+      wipeBtn.classList.remove("armed");
+      wipeBtn.textContent = "Restart from zero";
+    }
+    wipeBtn.addEventListener("click", function () {
+      if (!wipeBtn.classList.contains("armed")) {
+        wipeBtn.classList.add("armed");
+        wipeBtn.textContent = "Tap again to erase progress";
+        wipeTimer = setTimeout(disarm, 3000);
+        return;
+      }
+      disarm();
+      number = new OmegaNum(0);
+      p = new OmegaNum(1);
+      levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0 };
+      maxNumber = new OmegaNum(0);
+      heavenlyNumber = new OmegaNum(0);
+      ascensionPoints = new OmegaNum(0);
+      q = new OmegaNum(0);
+      hasAscendedUnlocked = false;
+      totalAscensions = 0;
+      ascensionUpgrades = { heavenlyGale: false, heavenlyStrikedown: false, kinetic: false, ascendantVariable: false, perfection: false };
+      $("heaven").hidden = true;
+      history = [];
+      updateDerived();
+      save(); render();
+      setStatus("Progress erased. Starting over.");
+    });
+
+    // ---------- stats panel ----------
+    var history = []; // in-memory samples: {t, v: log10(number)}
+    var HISTORY_MAX = 400;
+
+    function recordHistory() {
+      var v = number.gt(0) ? number.log10().toNumber() : 0;
+      if (!isFinite(v)) return;
+      history.push({ t: Date.now(), v: v });
+      if (history.length > HISTORY_MAX) {
+        var compact = [];
+        for (var i = 0; i < history.length; i++) {
+          if (i % 2 === 0 || i === history.length - 1) compact.push(history[i]);
+        }
+        history = compact;
+      }
+    }
+
+    var LENGTH_UNITS = [
+      ["Planck lengths", 1.616255e-35], ["yoctometers", 1e-24], ["attometers", 1e-18],
+      ["femtometers", 1e-15], ["picometers", 1e-12], ["nanometers", 1e-9],
+      ["micrometers", 1e-6], ["millimeters", 1e-3], ["centimeters", 1e-2],
+      ["meters", 1], ["kilometers", 1e3], ["megameters", 1e6], ["gigameters", 1e9],
+      ["AUs", 1.495978707e11], ["light years", 9.4607e15], ["parsecs", 3.0857e16],
+      ["gigaparsecs", 3.0857e25]
+    ];
+    var ATOM_DIAMETER_M = 3e-10; // rough atomic diameter, for a "perfectly compressed" cube of atoms
+
+    function buildLengthUnits() {
+      var sel = $("stats-unit");
+      LENGTH_UNITS.forEach(function (u, i) {
+        var o = document.createElement("option");
+        o.value = String(i);
+        o.textContent = u[0];
+        if (u[0] === "meters") o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", updateStatsLength);
+    }
+    buildLengthUnits();
+
+    function updateStatsLength() {
+      var unit = LENGTH_UNITS[parseInt($("stats-unit").value, 10)];
+      var edge = number.gt(0) ? number.pow(1 / 3).mul(ATOM_DIAMETER_M) : new OmegaNum(0);
+      $("stats-length-value").textContent = fmt(edge.div(unit[1]), 3);
+      $("stats-length-unit").textContent = unit[0];
+    }
+
+    function drawStatsGraph() {
+      var canvas = $("stats-canvas");
+      var ctx = canvas.getContext("2d");
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      var rangeSec = parseInt($("stats-range").value, 10);
+      var now = Date.now();
+      var pts = history.filter(function (pt) { return rangeSec === 0 || (now - pt.t) <= rangeSec * 1000; });
+      var style = getComputedStyle(document.documentElement);
+      if (pts.length < 2) {
+        ctx.fillStyle = style.getPropertyValue("--muted").trim() || "#6f5d86";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("Not enough data yet \u2014 keep this open a moment.", 10, h / 2);
+        return;
+      }
+      var minV = pts[0].v, maxV = pts[0].v;
+      pts.forEach(function (pt) { if (pt.v < minV) minV = pt.v; if (pt.v > maxV) maxV = pt.v; });
+      if (maxV === minV) maxV = minV + 1;
+      var minT = pts[0].t, maxT = pts[pts.length - 1].t;
+      var spanT = (maxT - minT) || 1;
+      function x(t) { return 10 + (t - minT) / spanT * (w - 20); }
+      function y(v) { return h - 10 - (v - minV) / (maxV - minV) * (h - 20); }
+      ctx.strokeStyle = style.getPropertyValue("--accent").trim() || "#b4236e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      pts.forEach(function (pt, i) {
+        var px = x(pt.t), py = y(pt.v);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+
+    function updateStatsPanel() {
+      $("stats-record").textContent = fmt(maxNumber, 2);
+      $("stats-ascensions").textContent = "Times ascended: " + totalAscensions.toLocaleString();
+      updateStatsLength();
+      drawStatsGraph();
+    }
+
+    var statsDlg = $("stats");
+    $("open-stats").addEventListener("click", function () {
+      updateStatsPanel();
+      if (statsDlg.showModal) statsDlg.showModal(); else statsDlg.setAttribute("open", "");
+    });
+    $("close-stats").addEventListener("click", function () {
+      if (statsDlg.close) statsDlg.close(); else statsDlg.removeAttribute("open");
+    });
+    statsDlg.addEventListener("click", function (e) { if (e.target === statsDlg) statsDlg.close(); });
+    $("stats-range").addEventListener("change", drawStatsGraph);
+
+    // ---------- ascension / the heavenly number ----------
+    var heavenEl = $("heaven");
+
+    function canBuyAscension(u) {
+      if (ascensionUpgrades[u.id]) return false;
+      if (u.requires && !ascensionUpgrades[u.requires]) return false;
+      return ascensionPoints.gte(u.cost);
+    }
+
+    function buyAscension(u) {
+      if (ascensionUpgrades[u.id]) return;
+      if (u.requires && !ascensionUpgrades[u.requires]) return;
+      if (ascensionPoints.lt(u.cost)) return;
+      ascensionPoints = ascensionPoints.sub(u.cost);
+      ascensionUpgrades[u.id] = true;
+      if (u.id === "ascendantVariable") q = new OmegaNum(1);
+      if (settings.autosave > 0) save();
+      renderHeaven(); render();
+    }
+
+    function renderAscensionUpgrades() {
+      var list = $("heaven-upgrade-list");
+      list.innerHTML = "";
+      ASCENSION_UPS.forEach(function (u) {
+        if (u.requires && !ascensionUpgrades[u.requires]) return; // not revealed yet
+
+        var art = document.createElement("article");
+        art.className = "upgrade";
+
+        var head = document.createElement("div");
+        head.className = "up-head";
+        var h3 = document.createElement("h3");
+        h3.textContent = u.name;
+        head.appendChild(h3);
+
+        var desc = document.createElement("p");
+        desc.className = "up-desc";
+        desc.textContent = u.desc;
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn primary up-buy";
+        btn.addEventListener("click", function () { buyAscension(u); });
+
+        if (ascensionUpgrades[u.id]) {
+          btn.disabled = true;
+          btn.textContent = "Owned";
+        } else {
+          btn.disabled = !canBuyAscension(u);
+          btn.textContent = ascensionPoints.lt(u.cost) ? ("Need " + u.cost + " AP") : ("Buy for " + u.cost + " AP");
+        }
+
+        art.appendChild(head); art.appendChild(desc); art.appendChild(btn);
+        list.appendChild(art);
+      });
+    }
+
+    function renderHeaven() {
+      $("heaven-number").textContent = fmt(heavenlyNumber, 0);
+      $("hb-pmult").textContent = heavenlyPMult().toFixed(2);
+      $("hb-nexp").textContent = heavenlyNExp().toFixed(2);
+      $("hb-slight").textContent = heavenlySlightBoost().toFixed(3);
+      var apText = "Ascension points: " + fmt(ascensionPoints, 0);
+      $("heaven-ap-1").textContent = apText;
+      $("heaven-ap-2").textContent = apText;
+      renderAscensionUpgrades();
+    }
+
+    var ascendBtnEl = $("ascend-btn"), ascendTimer = null;
+    function disarmAscend() {
+      clearTimeout(ascendTimer); ascendTimer = null;
+      ascendBtnEl.classList.remove("armed");
+      ascendBtnEl.textContent = "ASCEND";
+    }
+    ascendBtnEl.addEventListener("click", function () {
+      if (!ascendBtnEl.classList.contains("armed")) {
+        ascendBtnEl.classList.add("armed");
+        ascendBtnEl.textContent = "Tap again to ascend";
+        ascendTimer = setTimeout(disarmAscend, 3000);
+        return;
+      }
+      disarmAscend();
+      ascensionPoints = ascensionPoints.add(1);
+      totalAscensions += 1;
+      hasAscendedUnlocked = true;
+      number = new OmegaNum(0);
+      p = new OmegaNum(1);
+      levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0 };
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+    });
+    $("open-heaven").addEventListener("click", function () {
+      renderHeaven();
+      heavenEl.hidden = false;
+    });
+    $("heaven-back").addEventListener("click", function () {
+      heavenEl.hidden = true;
+    });
+    $("heaven-click").addEventListener("click", function () {
+      heavenlyNumber = heavenlyNumber.add(1);
+      if (settings.autosave > 0) save();
+      renderHeaven(); render();
+    });
+
+    // ---------- developer mode ----------
+    var devToggle = $("dev-toggle"), devPanel = $("dev-panel"), devStatus = $("dev-status");
+    var devF = {
+      gain: $("dev-pgain"), speed: $("dev-speed"),
+      number: $("dev-number"), p: $("dev-p"),
+      add: $("dev-add"), mul: $("dev-mul"), pro: $("dev-pro"), exp: $("dev-exp"), hyper: $("dev-hyper")
+    };
+
+    function setDevStatus(msg) { devStatus.textContent = msg; }
+
+    function fillDev() {
+      devToggle.checked = settings.devMode;
+      devPanel.hidden = !settings.devMode;
+      devF.gain.value = String(settings.devPGain);
+      devF.speed.value = String(settings.devSpeed);
+      devF.number.value = number.toString();
+      devF.p.value = p.toString();
+      devF.add.value = String(levels.add);
+      devF.mul.value = String(levels.mul);
+      devF.pro.value = String(levels.pro);
+      devF.exp.value = String(levels.exp);
+      devF.hyper.value = String(levels.hyper);
+    }
+
+    function parseOmega(str) {
+      str = str.trim();
+      if (!str) return null;
+      try { var x = new OmegaNum(str); return x.isNaN() ? null : x; } catch (e) { return null; }
+    }
+
+    function parseLevel(str) {
+      str = str.trim();
+      var v = Number(str);
+      return (str !== "" && isFinite(v) && v >= 0 && v <= 1e6 && Math.floor(v) === v) ? v : null;
+    }
+
+    devToggle.addEventListener("change", function () {
+      settings.devMode = devToggle.checked;
+      saveSettings(); updateDerived(); render(); fillDev();
+      setDevStatus(settings.devMode ? "Developer mode on." : "Developer mode off. Default rates restored.");
+    });
+
+    $("dev-apply-rates").addEventListener("click", function () {
+      var g = Number(devF.gain.value.trim()), s = Number(devF.speed.value.trim());
+      if (devF.gain.value.trim() === "" || !isFinite(g) || g < 0) { setDevStatus("Base p gain must be 0 or more."); return; }
+      if (devF.speed.value.trim() === "" || !isFinite(s) || s <= 0 || s > 1e6) { setDevStatus("Game speed must be above 0 and at most 1,000,000."); return; }
+      settings.devPGain = g; settings.devSpeed = s;
+      saveSettings(); updateDerived(); render();
+      setDevStatus("Rates applied.");
+    });
+
+    $("dev-reset-rates").addEventListener("click", function () {
+      settings.devPGain = DEFAULT_P_RATE; settings.devSpeed = 1;
+      saveSettings(); updateDerived(); render(); fillDev();
+      setDevStatus("Rates reset to defaults.");
+    });
+
+    $("dev-apply-values").addEventListener("click", function () {
+      var n = parseOmega(devF.number.value), pp = parseOmega(devF.p.value);
+      var la = parseLevel(devF.add.value), lm = parseLevel(devF.mul.value), lp = parseLevel(devF.pro.value), le = parseLevel(devF.exp.value), lh = parseLevel(devF.hyper.value);
+      if (!n || n.lt(0)) { setDevStatus("Number must be 0 or more."); return; }
+      if (!pp || pp.lt(1)) { setDevStatus("p must be at least 1."); return; }
+      if (la === null || lm === null || lp === null || le === null || lh === null) { setDevStatus("Levels must be whole numbers from 0 to 1,000,000."); return; }
+      number = n; p = pp;
+      levels = { add: la, mul: lm, pro: lp, exp: le, hyper: lh };
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+      setDevStatus("Values set.");
+    });
+
+    fillDev();
+
+    // ---------- main loop ----------
+    var last = performance.now();
+    var lastAuto = last;
+    var lastHistory = last;
+    var lastStatsUpdate = last;
+
+    function frame(now) {
+      advance(((now - last) / 1000) * gameSpeed());
+      last = now;
+      render();
+      if (settings.autosave > 0 && now - lastAuto >= settings.autosave * 1000) {
+        save(); lastAuto = now;
+      }
+      if (now - lastHistory >= 2000) { recordHistory(); lastHistory = now; }
+      if (statsDlg.open && now - lastStatsUpdate >= 1000) { updateStatsPanel(); lastStatsUpdate = now; }
+      requestAnimationFrame(frame);
+    }
+
+    function saveOnLeave() { if (settings.autosave > 0) save(); }
+    document.addEventListener("visibilitychange", function () { if (document.hidden) saveOnLeave(); });
+    window.addEventListener("pagehide", saveOnLeave);
+
+    render();
+    requestAnimationFrame(function (t) { last = t; lastAuto = t; requestAnimationFrame(frame); });
+  }
+
+  load(0);
+})();
+</script>
+</body>
+</html>

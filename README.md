@@ -5,7 +5,7 @@ How you play it:
 You start with 1 p, to ensure n/number does not go below 0.
 
 | GAME LOGIC |
-P gains passively (0.0005 p/s) aswell, making this game a idle game for that reason. It is also your currency for upgrades that are introduced as you progress!
+P gains passively (0.001 p/s) aswell, making this game a idle game for that reason, as p gains exceptionally slow at first. It is also your currency for upgrades that are introduced as you progress!
 P is the primary variable that helps with number gain and your goal is to get that number up as high as possible.
 There are upgrades that heavily affect p gain and the p formula, which is p^p = n.
 To define p formula more, if p is 2, 2^2 is 4, making n 4. P gains extremely slowly for the reason that if p is 10, 10^10 is 10 billion, which is a stark contract from 4.
@@ -19,10 +19,17 @@ Propulsion makes additive +10% better each level, p gains +0.1% more each level,
 Exponent raises the exponentiation formula in the p formula by x1.02 per level, making the p formula p^1.02^p^1.02 at level 1 of Exponentiation.
 
 | RESET LAYER |
-THIS IS WIP, EXPECT BUGS. 
 Once you hit 1.8e308 n, you unlock Ascension and therefor The Heavenly Number. You click the heavenly number which gives you buffs to p gain, upgrades, and the entire n exponent. Please do note that this feature is still wip
-and if any bugs are prevalent, please do contact me through discord at c4ppy_14. Active work is here to fix all known bugs. A known bug is the fact that The Heavenly Number and AP line up, allowing you to get AP
-at the click of a finger.
+and if any bugs are prevalent, please do contact me through discord at c4ppy_14. Now that we have that out of the way, let's deep dive into how the reset layer works.
+You get a ascension point per time you hit 1.8e308 n, the ascension point can be used to buy stupidly overpowered Heavenly Upgrades and unlocks The Heavenly Number, which can be clicked
+to apply boosts significantly on p gain, exponent multiplier in p formula, and n gain.
+
+| RESET UPGRADES |
+The 1st ascension upgrade is a simple x1.5 boost to p gain, which is great but minimalistic.
+The 2nd ascension upgrade, however adds +1.5 to p in the formula, it also invokes a multiplier and exponent boost on the p formula, making you get to 1.8e308 quicker
+The 3rd ascension upgrade adds a logarithmic boost to p in the formula based on your p amount
+4th and up are for you to see 
+
 
 | CLARIFICATIONS & CREDITS |
 Also, there is a upgrade template in ascension for now that does cost 1 AP, it gives p gain once again. 

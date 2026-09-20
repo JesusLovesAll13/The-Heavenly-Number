@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>p to the p</title>
+<title>The Heavenly Number</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&family=Red+Hat+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -849,11 +849,11 @@
     }
     // Ascension points earned per ascension (Duplication doubles it).
     function apPerAscension() { return ascensionUpgrades.duplication ? 2 : 1; }
-    var STRIKE_ADD = 1.5, STRIKE_MUL = 1.4, STRIKE_EXP = 1.05, Q_FORMULA_BOOST = 1.15;
-    var Q_FORMULA_PER_LOG = 0.03; // the formula boost from q grows by this much per power of ten of q
-    var Q_SELF_EXP = 0.1;         // q also boosts p gain by q^0.1, based on itself
-    var AUTO_HEAVEN_COEF = 0.01;  // Automatic: heavenly number per second = coef * sqrt(p * q)
-    var PERFECTION_ADD_MUL = 2, PERFECTION_MUL = 5 / 3, PERFECTION_EXP = 1.05, PERFECTION_Q_MUL = 1.25;
+    var STRIKE_ADD = 1.6, STRIKE_MUL = 1.5, STRIKE_EXP = 1.1, Q_FORMULA_BOOST = 1.2;
+    var Q_FORMULA_PER_LOG = 0.05; // the formula boost from q grows by this much per power of ten of q
+    var Q_SELF_EXP = 0.12;         // q also boosts p gain by q^0.12, based on itself
+    var AUTO_HEAVEN_COEF = 0.2;  // Automatic: heavenly number per second = coef * sqrt(p * q)
+    var PERFECTION_ADD_MUL = 2.2, PERFECTION_MUL = 5.5 / 3, PERFECTION_EXP = 1.06, PERFECTION_Q_MUL = 1.3;
 
     // Number very slightly boosts p gain: log10(n^0.00001) = 0.00001 * log10(n), never below 0.
     // Soft capped, and MUCH harder past 10^308 (right around where doubles start to overflow) \u2014

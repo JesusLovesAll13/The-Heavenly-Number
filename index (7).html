@@ -1,0 +1,3062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Heavenly Number</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;600&family=Red+Hat+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4effb;
+    --panel: #fbf8ff;
+    --ink: #241233;
+    --muted: #6f5d86;
+    --accent: #b4236e;
+    --on-accent: #ffffff;
+    --rule: #d9cdea;
+    --heaven-bg: #c7e0ff;
+    --heaven-border: #e0a900;
+    --heaven-glow-1: rgba(36,18,51,0.35);
+    --heaven-glow-2: rgba(224,169,0,0.45);
+    --q: #a35f00;
+    --r: #6b3fc4;
+    color-scheme: light dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #22102f;
+      --panel: #2c1740;
+      --ink: #f3eaff;
+      --muted: #a692bf;
+      --accent: #ffb547;
+      --on-accent: #22102f;
+      --rule: #43295a;
+      --heaven-bg: #0e1c3a;
+      --heaven-border: #fff1a8;
+      --heaven-glow-1: rgba(255,255,255,0.7);
+      --heaven-glow-2: rgba(255,221,102,0.55);
+      --q: #ffb547;
+      --r: #b48cff;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #22102f;
+    --panel: #2c1740;
+    --ink: #f3eaff;
+    --muted: #a692bf;
+    --accent: #ffb547;
+    --on-accent: #22102f;
+    --rule: #43295a;
+    --heaven-bg: #0e1c3a;
+    --heaven-border: #fff1a8;
+    --heaven-glow-1: rgba(255,255,255,0.7);
+    --heaven-glow-2: rgba(255,221,102,0.55);
+    --q: #ffb547;
+    --r: #b48cff;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 34px 20px 20px;
+  }
+  body.no-ticker main { padding-top: 0; }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 0;
+  }
+  #number {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600;
+    font-size: clamp(2.4rem, 12vw, 6.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+  #p {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500;
+    font-size: clamp(1.2rem, 5vw, 2rem);
+    color: var(--accent);
+    margin: 0.7em 0 0;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  #p span { color: var(--muted); font-family: "Red Hat Display", system-ui, sans-serif; font-weight: 400; margin-right: 0.35em; }
+
+  .pq-row { display: flex; align-items: baseline; justify-content: center; gap: 1.1em; flex-wrap: wrap; }
+  .pq-row #p { margin: 0.7em 0 0; }
+  #q-display, #r-display {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500; font-size: clamp(1.2rem, 5vw, 2rem); color: var(--q);
+    margin: 0.7em 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  #r-display { color: var(--r); }
+  #q-display span:first-child, #r-display span:first-child { color: var(--muted); font-family: "Red Hat Display", system-ui, sans-serif; font-weight: 400; margin-right: 0.35em; }
+  #q-rate-line[hidden], #q-display[hidden], #r-rate-line[hidden], #r-display[hidden] { display: none; }
+  #err { color: var(--accent); max-width: 36ch; }
+  #err[hidden] { display: none; }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer .rates { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+  footer b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .btn {
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    flex: none;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn:focus-visible, select:focus-visible, textarea:focus-visible, .drawer-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .btn.primary:disabled { background: none; border-color: var(--rule); color: var(--muted); font-weight: 400; cursor: not-allowed; }
+  .btn.danger { color: var(--muted); }
+  .btn.danger.armed { color: var(--accent); border-color: var(--accent); }
+
+  /* Upgrades drawer (pulls out from the left edge) */
+  .drawer {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: min(340px, 88vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 10;
+  }
+  .drawer.open { transform: none; }
+  .drawer-panel {
+    height: 100%;
+    background: var(--panel);
+    border-right: 1px solid var(--rule);
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)) calc(20px + env(safe-area-inset-left, 0px));
+    overflow: auto;
+    visibility: hidden;
+    transition: visibility 0s 0.25s;
+  }
+  .drawer.open .drawer-panel { visibility: visible; transition-delay: 0s; }
+  .drawer-panel h2 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; }
+  .drawer-panel > .hint { margin: 0 0 16px; }
+  .drawer-tab {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    margin-left: env(safe-area-inset-left, 0px);
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+    padding: 16px 9px;
+    cursor: pointer;
+  }
+  .drawer-tab[data-ready="true"]::after {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    margin-block-start: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(18, 6, 28, 0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 9;
+  }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  @media (min-width: 701px) { .scrim { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer, .scrim, .drawer-panel { transition: none; }
+  }
+
+  .upgrade { border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
+  .upgrade + .upgrade { margin-top: 12px; }
+  .up-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .up-head h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .up-level { color: var(--muted); font-size: 0.85rem; }
+  .up-desc { margin: 8px 0 12px; font-size: 0.86rem; line-height: 1.4; color: var(--muted); }
+  .up-stats { margin: 0 0 14px; display: grid; gap: 6px; }
+  .up-stats div { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+  .up-stats dt { color: var(--muted); }
+  .up-stats dd { margin: 0; font-family: "Red Hat Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+  .up-buy { width: 100%; }
+
+  .buy-mode { display: flex; gap: 6px; margin: 0 0 14px; }
+  .buy-mode-btn {
+    flex: 1; padding: 8px 0; border-radius: 10px; border: 1px solid var(--rule);
+    background: var(--panel); color: var(--ink); font-size: 0.88rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .buy-mode-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+  /* Settings sheet */
+  dialog {
+    border: 0;
+    padding: 0;
+    background: var(--panel);
+    color: var(--ink);
+    width: min(560px, 100%);
+    max-width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 14px;
+    margin: auto;
+    overflow: auto;
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(18, 6, 28, 0.6); }
+  @media (max-width: 600px) {
+    dialog { margin: auto 0 0; border-radius: 16px 16px 0 0; max-height: 88vh; max-height: 88dvh; }
+  }
+  .sheet { padding: 18px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sheet header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .sheet h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  .sheet h3 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 600; }
+  fieldset { border: 0; padding: 0; margin: 0 0 24px; min-width: 0; }
+  legend { padding: 0; margin-bottom: 10px; font-weight: 600; font-size: 0.95rem; }
+  .hint { color: var(--muted); font-size: 0.82rem; line-height: 1.4; margin: 8px 0 0; }
+
+  .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 6px; }
+  .seg label, .opts label { position: relative; display: block; cursor: pointer; }
+  .seg input, .opts input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span {
+    display: block; text-align: center; padding: 10px 8px;
+    border: 1px solid var(--rule); border-radius: 8px; font-size: 0.9rem;
+  }
+  .seg input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .seg input:focus-visible + span, .opts input:focus-visible + .opt-body { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .opts { display: grid; gap: 6px; }
+  .opt-body {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 11px 12px; border: 1px solid var(--rule); border-radius: 8px;
+  }
+  .opt-name { font-size: 0.95rem; }
+  .opt-sample { font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.9rem; color: var(--muted); }
+  .opts input:checked + .opt-body { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opts input:checked + .opt-body .opt-sample { color: var(--accent); }
+
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .row .label { font-size: 0.9rem; color: var(--muted); }
+  select {
+    font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px;
+  }
+  textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.78rem;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 10px;
+    word-break: break-all;
+  }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  #status, #dev-status { min-height: 1.3em; margin: 12px 0 0; font-size: 0.85rem; color: var(--accent); }
+  [hidden] { display: none !important; }
+  .dev { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .toggle { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; cursor: pointer; }
+  .toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  #dev-panel { margin-top: 16px; }
+  #dev-panel h4 { margin: 18px 0 10px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+  #dev-panel h4:first-child { margin-top: 0; }
+  .field {
+    font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.85rem;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px;
+    width: 52%; min-width: 0;
+  }
+  .field:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  #ascend-btn { margin-bottom: 16px; animation: ascend-pulse 1.6s ease-in-out infinite; }
+  #ascend-btn.armed { animation: none; background: var(--ink); color: var(--bg); }
+  @keyframes ascend-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .btn-heaven {
+    background: color-mix(in srgb, var(--heaven-border) 20%, var(--panel));
+    border-color: var(--heaven-border);
+    color: var(--ink);
+  }
+  .btn-heaven:hover { border-color: var(--ink); }
+
+  .heaven {
+    position: fixed; inset: 10px;
+    border-radius: 20px;
+    background: var(--heaven-bg);
+    color: var(--ink);
+    z-index: 30;
+    overflow: auto;
+    border: 3px solid var(--heaven-border);
+    box-shadow: 0 0 12px 3px var(--heaven-glow-1), 0 0 46px 12px var(--heaven-glow-2), inset 0 0 30px rgba(255,241,168,0.12);
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .heaven[hidden] { display: none; }
+  .heaven-inner { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+  #heaven-back { align-self: flex-start; }
+  .heaven-title { margin: 6px 0 0; font-size: 1.3rem; font-weight: 600; }
+  .heaven-number {
+    font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600; font-size: clamp(2rem, 10vw, 4rem); margin: 4px 0;
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .heaven-boosts { color: var(--muted); font-size: 0.88rem; display: flex; flex-direction: column; gap: 2px; margin: 0 0 10px; }
+  .heaven-boosts b { color: var(--ink); font-family: "Red Hat Mono", ui-monospace, monospace; }
+  .heaven-click { font-size: 1.1rem; padding: 18px 34px; margin: 8px 0 4px; }
+  .ascension-points { color: var(--muted); font-size: 0.88rem; margin: 4px 0; }
+  .heaven-upgrades { width: 100%; margin-top: 26px; text-align: left; }
+  .heaven-upgrades h3 { margin: 0 0 12px; font-size: 1rem; font-weight: 600; }
+
+  /* footer button group (wraps on narrow screens now that there can be four buttons) */
+  .foot-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  @media (max-width: 560px) {
+    footer { flex-direction: column; align-items: stretch; gap: 12px; }
+    .foot-buttons { justify-content: flex-start; }
+  }
+
+  /* automation dialog */
+  .auto-list { display: grid; gap: 10px; margin: 12px 0 0 28px; }
+  .auto-note { min-height: 1.3em; margin: 12px 0 0; font-size: 0.85rem; color: var(--accent); }
+
+  /* news ticker */
+  .ticker {
+    position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 28px;
+    overflow: hidden; z-index: 5; display: flex; align-items: center;
+    background: var(--panel); border-bottom: 1px solid var(--rule);
+    color: var(--muted); font-size: 0.82rem; white-space: nowrap;
+  }
+  .ticker[hidden] { display: none; }
+  .ticker-msg { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: center; padding: 0 12px; will-change: transform; }
+  .ticker-msg.static { position: static; margin: 0 auto; height: auto; white-space: normal; text-align: center; }
+
+  /* toast */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px);
+    max-width: min(92vw, 460px); z-index: 60; background: var(--ink); color: var(--bg);
+    padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* challenge banner (shown on the main screen while a challenge is running) */
+  .ch-banner { width: min(520px, 100%); margin: 10px auto 0; padding: 12px 14px; border: 1px solid var(--accent); border-radius: 14px; background: var(--panel); text-align: left; }
+  .ch-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ch-title b { font-size: 0.95rem; }
+  .ch-goal { color: var(--accent); font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 0.88rem; }
+  .ch-info { margin-top: 6px; font-size: 0.84rem; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+  .ch-r { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .ch-r[hidden] { display: none; }
+  .ch-screen { border-color: var(--accent); box-shadow: 0 0 24px 4px var(--heaven-glow-1); background: var(--bg); }
+  .aleph-card { width: 100%; max-width: 420px; border: 1px solid var(--heaven-border); border-radius: 14px; padding: 12px 14px; margin: 6px 0 10px; text-align: left; }
+  .aleph-card[hidden] { display: none; }
+  .aleph-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .aleph-name { font-weight: 600; color: var(--accent); }
+  #s-display { font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 500; font-size: clamp(1.2rem, 5vw, 2rem); color: var(--ink); margin: 0.7em 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  #s-display span:first-child { color: var(--muted); font-family: "Red Hat Display", system-ui, sans-serif; font-weight: 400; margin-right: 0.35em; }
+  #s-display[hidden] { display: none; }
+  .aleph-top b { font-family: "Red Hat Mono", ui-monospace, monospace; font-size: 1.2rem; }
+
+  /* custom theme */
+  .custom-theme { margin-top: 14px; padding: 12px; border: 1px solid var(--rule); border-radius: 12px; }
+  .custom-theme[hidden] { display: none; }
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .color-grid label { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.88rem; color: var(--muted); }
+  .color-grid input[type="color"] { width: 44px; height: 32px; padding: 0; border: 1px solid var(--rule); border-radius: 8px; background: none; cursor: pointer; }
+  /* --- added: developer sign-in + ascend preview --- */
+  #ascend-info { margin: -8px 0 14px; max-width: 42ch; }
+  #dev-auth { margin-top: 12px; }
+  #dev-signedin { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+  #dev-signin .toggle { font-size: 0.85rem; color: var(--muted); }
+
+  /* --- Ascension screen: clean, fully white, with a draggable upgrade tree --- */
+  .asc-screen {
+    --bg: #ffffff; --panel: #ffffff; --raise: #f6f5f9; --ink: #17131f; --muted: #6b6577;
+    --rule: #e6e3ee; --accent: #17131f; --on-accent: #ffffff; --gold: #8a6100; --good: #1b7f4a;
+    position: fixed; inset: 0; z-index: 30; background: #ffffff; color: var(--ink);
+    display: flex; flex-direction: column; overflow: auto; color-scheme: light;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 20px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  .asc-screen[hidden] { display: none; }
+  .asc-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .asc-ap { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .asc-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); gap: 28px; margin-top: 16px; }
+  .asc-side { display: flex; flex-direction: column; gap: 14px; text-align: left; min-width: 0; }
+  .asc-eyebrow { margin: 0; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .asc-number { margin: 0; font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; font-size: clamp(2.2rem, 9vw, 3.6rem); line-height: 1.05; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .asc-tap { width: 100%; min-height: 52px; font-size: 1.05rem; }
+  .asc-boosts { display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .asc-boosts > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 0.86rem; color: var(--muted); }
+  .asc-boosts > div[hidden] { display: none; }
+  .asc-boosts b { color: var(--ink); font-family: "Red Hat Mono", ui-monospace, monospace; font-weight: 600; }
+  .asc-screen .aleph-card { max-width: none; margin: 0; border-color: var(--rule); background: var(--raise); }
+  .asc-screen .aleph-name { color: var(--gold); }
+  .asc-tree { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .asc-tree-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .asc-tree-head h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+  .asc-tree-head span { font-size: 0.8rem; color: var(--muted); }
+  .tree-viewport {
+    position: relative; flex: 1; min-height: 360px; overflow: hidden; border: 1px solid var(--rule); border-radius: 18px;
+    background-color: #ffffff; background-image: radial-gradient(#e7e4ef 1px, transparent 1.2px); background-size: 22px 22px;
+    cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .tree-viewport.dragging { cursor: grabbing; }
+  .tree-canvas { position: absolute; left: 0; top: 0; width: 800px; height: 1100px; will-change: transform; }
+  .tree-lines { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .tree-lines path { fill: none; stroke: #dcd8e6; stroke-width: 2; }
+  .tree-lines path.next { stroke: #a9a3b8; stroke-dasharray: 5 5; }
+  .tree-lines path.on { stroke: #17131f; }
+  .tnode {
+    position: absolute; width: 190px; min-height: 78px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+    font: inherit; text-align: left; color: var(--ink); background: #ffffff; border: 1.5px solid var(--rule); border-radius: 14px;
+    cursor: pointer; box-shadow: 0 1px 2px rgba(23, 19, 31, 0.05);
+  }
+  .tnode .tn-name { font-weight: 600; font-size: 0.92rem; line-height: 1.25; }
+  .tnode .tn-sub { font-size: 0.78rem; color: var(--muted); }
+  .tnode.locked { border-style: dashed; opacity: 0.55; }
+  .tnode.avail { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(23, 19, 31, 0.08); }
+  .tnode.owned { background: #f4f2f8; border-color: #cbc6d8; }
+  .tnode.owned .tn-sub { color: var(--good); font-weight: 600; }
+  .tnode.selected { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .tree-recenter { position: absolute; right: 10px; bottom: 10px; }
+  .tree-detail { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 16px; }
+  .tree-detail h4 { margin: 4px 0 6px; font-size: 1.05rem; }
+  .td-desc { margin: 0 0 10px; font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+  .td-meta { display: grid; gap: 4px; margin: 0 0 12px; font-size: 0.86rem; }
+  .td-meta div { display: flex; justify-content: space-between; gap: 10px; }
+  .td-meta dt { color: var(--muted); }
+  .td-meta dd { margin: 0; text-align: right; }
+  @media (max-width: 820px) {
+    .asc-body { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .tree-viewport { min-height: 420px; }
+  }
+
+  /* --- Research: the Matter panel and the circles you click --- */
+  .res-inner { max-width: 900px !important; align-items: stretch !important; }
+  #research-back { align-self: flex-start; }
+  .matter-field { position: relative; min-height: 62vh; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px dashed var(--rule); border-radius: 18px; }
+  .matter-panel { position: relative; z-index: 1; min-width: 240px; padding: 22px 34px; text-align: center; background: var(--panel); border: 1px solid var(--rule); border-radius: 18px; box-shadow: var(--shadow); }
+  .matter-panel[hidden] { display: none; }
+  .matter-name { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .matter-value { margin: 6px 0 12px; font-family: "Red Hat Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; font-size: clamp(2rem, 9vw, 3.4rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .matter-boosts { display: flex; flex-direction: column; gap: 3px; font-size: 0.86rem; color: var(--muted); }
+  .matter-boosts b { color: var(--ink); font-family: "Red Hat Mono", ui-monospace, monospace; }
+  .matter-dot {
+    position: absolute; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+    background: radial-gradient(circle at 35% 30%, #ffffff, var(--q) 48%, var(--accent));
+    box-shadow: 0 0 18px var(--heaven-glow-2);
+    animation: dotlife 7s linear forwards;
+  }
+  .matter-dot.pop { animation: dotpop 0.18s ease-out forwards; }
+  @keyframes dotlife { 0% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: scale(0.35); opacity: 0; } }
+  @keyframes dotpop { to { transform: scale(1.6); opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="ticker" class="ticker" role="marquee" aria-live="off"><div id="ticker-msg" class="ticker-msg"></div></div>
+<main>
+  <section class="stage" aria-label="Game">
+    <button id="ascend-btn" class="btn primary" type="button" hidden>ASCEND</button>
+    <p id="ascend-info" class="hint" hidden></p>
+    <h1 id="number" aria-live="off">0</h1>
+    <div class="pq-row">
+      <p id="p"><span>p</span>1.0000</p>
+      <p id="q-display" class="q-line" hidden><span>q</span><span id="q-value">1.0000</span></p>
+      <p id="r-display" hidden><span>r</span><span id="r-value">&minus;1.0000</span></p>
+      <p id="s-display" hidden><span>s</span><span id="s-value">0.0000</span></p>
+    </div>
+    <div id="ch-banner" class="ch-banner" hidden>
+      <div class="ch-title"><b id="ch-name"></b><span id="ch-goal" class="ch-goal"></span><button id="ch-leave" class="btn small" type="button">Leave</button></div>
+      <div id="ch-info" class="ch-info"></div>
+      <div id="ch-s" class="ch-r" hidden>
+        <button id="s-sac" class="btn" type="button">Sacrifice 10% of your Heavenly Number</button>
+      </div>
+      <div id="ch-r" class="ch-r" hidden>
+        <button id="r-click" class="btn" type="button">Defeat r</button>
+      </div>
+    </div>
+    <p id="err" hidden>OmegaNum.js could not be loaded. Connect to the internet and reload, or save OmegaNum.js next to this file.</p>
+  </section>
+  <footer>
+    <div class="rates">
+      <div>Number gains <b id="rate-n">0</b> per second</div>
+      <div id="formula">p^p &minus; 1</div>
+      <div>p gains <b id="p-rate">0.001000</b> per second</div>
+      <div id="q-rate-line" class="q-line" hidden>q gains <b id="q-rate">0.005000</b> per second &middot; boosts formula &times;<b id="q-formula-mult">1.150</b> &middot; p gain &times;<b id="q-pgain-mult">1.00</b></div>
+      <div id="r-rate-line" hidden>r gains <b id="r-rate">0.0020</b> per second &middot; boosts p gain &times;<b id="r-pmult">1.00</b> &middot; n gain &times;<b id="r-nmult">1.00</b></div>
+    </div>
+    <div class="foot-buttons">
+      <button id="open-auto" class="btn" type="button" hidden>Automation</button>
+      <button id="open-research" class="btn" type="button" hidden>Research</button>
+      <button id="open-challenges" class="btn" type="button" hidden>Challenges</button>
+      <button id="open-heaven" class="btn btn-heaven" type="button" hidden>&#10024;</button>
+      <button id="open-stats" class="btn" type="button">Stats</button>
+      <button id="open-settings" class="btn" type="button">Settings</button>
+    </div>
+  </footer>
+</main>
+
+<section id="heaven" class="asc-screen" hidden aria-label="Ascension">
+  <div class="asc-top">
+    <button id="heaven-back" class="btn" type="button">&larr; Back</button>
+    <p class="asc-ap" id="heaven-ap-1">Ascension points: 0</p>
+  </div>
+  <div class="asc-body">
+    <div class="asc-side">
+      <p class="asc-eyebrow">The Heavenly Number</p>
+      <p id="heaven-number" class="asc-number">0</p>
+      <button id="heaven-click" class="btn primary asc-tap" type="button">+1</button>
+      <div class="asc-boosts" id="heaven-boosts">
+        <div><span>p gain</span><span>&times;<b id="hb-pmult">1.00</b></span></div>
+        <div><span>Number gain exponent</span><span>&times;<b id="hb-nexp">1.00</b></span></div>
+        <div><span>Extra formula boost</span><span>&times;<b id="hb-slight">1.000</b></span></div>
+        <div id="hb-q" hidden><span>q gain</span><span>&times;<b id="hb-q-mult">1.00</b></span></div>
+        <div id="hb-auto" hidden><span>Automatic gain</span><span><b id="hb-auto-rate">0</b> per second</span></div>
+      </div>
+      <div id="aleph-card" class="aleph-card" hidden>
+        <div class="aleph-top"><span class="aleph-name">&alefsym; Aleph</span><b id="aleph-value">0.0000</b></div>
+        <div class="hint">Grows by <b id="aleph-rate">0.0001</b> per second</div>
+        <div class="hint">Heavenly Number gain &times;<b id="aleph-hn">1.00</b> &middot; AP gain &times;<b id="aleph-ap">1.00</b> &middot; every upgrade acts as if it had &times;<b id="aleph-up">1.00</b> the levels</div>
+      </div>
+    </div>
+    <div class="asc-tree">
+      <div class="asc-tree-head"><h3>Ascension upgrades</h3><span>Drag to look around &middot; tap an upgrade for details</span></div>
+      <div id="tree-viewport" class="tree-viewport" aria-label="Ascension upgrade tree">
+        <div id="tree-canvas" class="tree-canvas"><svg id="tree-lines" class="tree-lines" aria-hidden="true"></svg></div>
+        <button id="tree-recenter" class="btn small tree-recenter" type="button">Recenter</button>
+      </div>
+      <div id="tree-detail" class="tree-detail">
+        <p class="asc-ap" id="heaven-ap-2">Ascension points: 0</p>
+        <h4 id="td-name"></h4>
+        <p class="td-desc" id="td-desc"></p>
+        <dl class="td-meta">
+          <div><dt>Cost</dt><dd id="td-cost"></dd></div>
+          <div><dt>Requires</dt><dd id="td-req"></dd></div>
+        </dl>
+        <button id="td-buy" class="btn primary" type="button">Buy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="challenges" class="heaven ch-screen" hidden aria-label="Challenges">
+  <div class="heaven-inner">
+    <button id="challenges-back" class="btn" type="button">&larr; Back</button>
+    <h2 class="heaven-title">Challenges</h2>
+    <p class="hint">Entering a challenge restarts your run, like ascending but without any reward. Reach the goal to complete it. Each challenge can be completed three times, and rewards are permanent.</p>
+    <div id="challenge-list" class="heaven-upgrades"></div>
+  </div>
+</section>
+
+<section id="research" class="heaven ch-screen" hidden aria-label="Research">
+  <div class="heaven-inner res-inner">
+    <button id="research-back" class="btn" type="button">&larr; Back</button>
+    <h2 class="heaven-title">Research</h2>
+    <p class="hint">Click the circles that appear around the Matter panel to collect matter.</p>
+    <div id="matter-field" class="matter-field">
+      <div id="matter-panel" class="matter-panel" hidden>
+        <div class="matter-name">Matter</div>
+        <div id="matter-value" class="matter-value">0</div>
+        <div class="matter-boosts">
+          <div>p gain &times;<b id="mb-p">1.00</b></div>
+          <div>q gain &times;<b id="mb-q">1.00</b></div>
+          <div>Exponent on the p in the formula ^<b id="mb-exp">1.000</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<aside id="drawer" class="drawer" aria-label="Upgrades">
+  <div class="drawer-panel" id="drawer-panel">
+    <h2>Upgrades</h2>
+    <p class="hint">Buying spends p. You need the cost plus 1 p, so p never drops below 1.</p>
+    <div class="buy-mode" id="buy-mode-group" role="group" aria-label="Buy amount">
+      <button type="button" class="buy-mode-btn" data-mode="1">&times;1</button>
+      <button type="button" class="buy-mode-btn" data-mode="10">&times;10</button>
+      <button type="button" class="buy-mode-btn" data-mode="max">Max</button>
+    </div>
+    <div id="upgrade-list"></div>
+  </div>
+  <button id="drawer-tab" class="drawer-tab" type="button" aria-expanded="false" aria-controls="drawer-panel">Upgrades</button>
+</aside>
+<div id="scrim" class="scrim"></div>
+
+<dialog id="settings" aria-labelledby="settings-title">
+  <div class="sheet">
+    <header>
+      <h2 id="settings-title">Settings</h2>
+      <button id="close-settings" class="btn primary" type="button">Done</button>
+    </header>
+
+    <fieldset>
+      <legend>Theme</legend>
+      <div class="seg" id="theme-group"></div>
+      <div class="custom-theme" id="custom-theme" hidden>
+        <div class="color-grid" id="color-grid"></div>
+        <div class="btns"><button id="custom-reset" class="btn small" type="button">Reset colors</button></div>
+        <p class="hint">Pick your own colors. Muted text and borders are worked out from these automatically.</p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Notation</legend>
+      <div class="opts" id="notation-group"></div>
+      <p class="hint">Abbreviations use K, M, B, T, Qa and so on up to Tg (1e93), then switch to scientific. Letters count a to z, then aa, ab and onward.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Display</legend>
+      <label class="toggle"><input type="checkbox" id="ticker-toggle"><span>Show the news ticker</span></label>
+    </fieldset>
+
+    <section aria-labelledby="saving-title">
+      <h3 id="saving-title">Saving</h3>
+      <div class="row">
+        <span class="label" id="saved-label">Not saved yet</span>
+        <button id="save-now" class="btn" type="button">Save now</button>
+      </div>
+      <div class="row">
+        <label class="label" for="autosave">Autosave</label>
+        <select id="autosave"></select>
+      </div>
+      <label class="label" for="code" style="display:block;margin:16px 0 6px;font-size:0.9rem;color:var(--muted)">Save code</label>
+      <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Tap Export to get a code you can keep. Paste a code here and tap Import to load it."></textarea>
+      <div class="btns">
+        <button id="export" class="btn" type="button">Export</button>
+        <button id="import" class="btn" type="button">Import</button>
+        <button id="wipe" class="btn danger" type="button">Restart from zero</button>
+      </div>
+      <p id="status" role="status"></p>
+    </section>
+
+    <section class="dev" aria-labelledby="dev-title">
+      <h3 id="dev-title">Developer</h3>
+      <label class="toggle" hidden><input type="checkbox" id="dev-toggle"><span>Developer mode</span></label>
+      <div id="dev-auth">
+        <div id="dev-signin">
+          <p class="hint" style="margin-top:0;">Developer tools are restricted to the game's owner. Verify with a GitHub personal access token (it needs no permissions and is only sent to api.github.com).</p>
+          <div class="row" style="margin-top:12px;">
+            <label class="label" for="dev-token">GitHub token</label>
+            <input id="dev-token" class="field" type="password" autocomplete="off" spellcheck="false">
+          </div>
+          <label class="toggle"><input type="checkbox" id="dev-remember" checked><span>Remember on this device</span></label>
+          <div class="btns"><button id="dev-signin-btn" class="btn primary" type="button">Verify with GitHub</button></div>
+        </div>
+        <div id="dev-signedin" hidden>
+          <span>Signed in as <b id="dev-user"></b></span>
+          <button id="dev-signout" class="btn" type="button">Sign out</button>
+        </div>
+      </div>
+
+      <div id="dev-panel" hidden>
+        <h4>Rates</h4>
+        <div class="row">
+          <label class="label" for="dev-pgain">Base p gain per second</label>
+          <input id="dev-pgain" class="field" type="text" inputmode="decimal" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-speed">Game speed (&times;)</label>
+          <input id="dev-speed" class="field" type="text" inputmode="decimal" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="btns">
+          <button id="dev-apply-rates" class="btn primary" type="button">Apply rates</button>
+          <button id="dev-reset-rates" class="btn" type="button">Reset rates</button>
+        </div>
+
+        <h4>Values</h4>
+        <div class="row">
+          <label class="label" for="dev-number">Number</label>
+          <input id="dev-number" class="field" type="text" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-p">p</label>
+          <input id="dev-p" class="field" type="text" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-add">Additive level</label>
+          <input id="dev-add" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-mul">Multiplier level</label>
+          <input id="dev-mul" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-pro">Propulsion level</label>
+          <input id="dev-pro" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-exp">Exponent level</label>
+          <input id="dev-exp" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <label class="label" for="dev-hyper">Hyper Tower level</label>
+          <input id="dev-hyper" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="row"><label class="label" for="dev-pp">Prudent Processing level</label><input id="dev-pp" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-matter">Matter</label><input id="dev-matter" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-c1">Challenge 1 completions</label><input id="dev-c1" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-c2">Challenge 2 completions</label><input id="dev-c2" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-c3">Challenge 3 completions</label><input id="dev-c3" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-c4">Challenge 4 completions</label><input id="dev-c4" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label class="label" for="dev-c5">Challenge 5 completions (0 or 1)</label><input id="dev-c5" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+        <div class="row">
+          <label class="label" for="dev-ap">Ascension points</label>
+          <input id="dev-ap" class="field" type="text" inputmode="numeric" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="btns">
+          <button id="dev-apply-values" class="btn primary" type="button">Set values</button>
+        </div>
+        <p class="hint">Number and p accept scientific input such as 1e50. p must be at least 1, and levels are whole numbers from 0 to 1,000,000.</p>
+      </div>
+      <p id="dev-status" role="status"></p>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="stats" aria-labelledby="stats-title">
+  <div class="sheet">
+    <header>
+      <h2 id="stats-title">Stats</h2>
+      <button id="close-stats" class="btn primary" type="button">Done</button>
+    </header>
+
+    <section aria-labelledby="stats-record-title">
+      <h3 id="stats-record-title">Highest number reached</h3>
+      <p id="stats-record" style="font-family:'Red Hat Mono',ui-monospace,monospace;font-size:1.3rem;margin:0 0 6px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;"></p>
+      <p class="hint" id="stats-ascensions" style="margin:0 0 20px;"></p>
+    </section>
+
+    <section aria-labelledby="stats-graph-title">
+      <h3 id="stats-graph-title">Number over time</h3>
+      <div class="row">
+        <label class="label" for="stats-range">Range</label>
+        <select id="stats-range">
+          <option value="60">Last minute</option>
+          <option value="300">Last 5 minutes</option>
+          <option value="3600">Last hour</option>
+          <option value="0">All time</option>
+        </select>
+      </div>
+      <canvas id="stats-canvas" width="600" height="200" style="width:100%;height:170px;display:block;border:1px solid var(--rule);border-radius:8px;"></canvas>
+      <p class="hint">Shows log&#8321;&#8320; of your number, sampled every couple of seconds this session.</p>
+    </section>
+
+    <section aria-labelledby="stats-length-title">
+      <h3 id="stats-length-title">A sense of scale</h3>
+      <p class="hint">If your number was the amount of atoms perfectly compressed together, it would be <b id="stats-length-value">0</b> <span id="stats-length-unit">meters</span> across.</p>
+      <select id="stats-unit"></select>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="automation" aria-labelledby="automation-title">
+  <div class="sheet">
+    <header>
+      <h2 id="automation-title">Automation</h2>
+      <button id="close-automation" class="btn primary" type="button">Done</button>
+    </header>
+
+    <section aria-labelledby="auto-buy-title">
+      <h3 id="auto-buy-title">Auto-buy upgrades</h3>
+      <p class="hint" style="margin:0 0 12px;">Buys every level you can afford, for free. Your p is never spent.</p>
+      <label class="toggle"><input type="checkbox" id="auto-buy-on"><span>Auto-buy enabled</span></label>
+      <div class="auto-list" id="auto-buy-list"></div>
+    </section>
+
+    <section aria-labelledby="auto-asc-title" style="margin-top:26px;">
+      <h3 id="auto-asc-title">Auto-ascension</h3>
+      <p class="hint" style="margin:0 0 12px;">Ascends for you once your number reaches the wall.</p>
+      <label class="toggle"><input type="checkbox" id="auto-asc-on"><span>Auto-ascend enabled</span></label>
+      <div class="row" style="margin-top:12px;">
+        <label class="label" for="auto-asc-delay">Wait before ascending</label>
+        <select id="auto-asc-delay"></select>
+      </div>
+    </section>
+
+    <section id="auto-break" aria-labelledby="auto-break-title" style="margin-top:26px;" hidden>
+      <h3 id="auto-break-title">Ascension targets</h3>
+      <p class="hint" style="margin:0 0 12px;">Infinity is broken, so you can choose when to ascend. Leave a box empty to ignore it. With both empty, auto-ascension fires as soon as your number reaches the wall.</p>
+      <div class="row"><label class="label" for="auto-n">Ascend once n reaches</label><input id="auto-n" class="field" type="text" placeholder="e.g. 1e600" autocomplete="off" spellcheck="false"></div>
+      <div class="row"><label class="label" for="auto-ap">Ascend once AP gain reaches</label><input id="auto-ap" class="field" type="text" inputmode="numeric" placeholder="e.g. 10" autocomplete="off" spellcheck="false"></div>
+      <p class="hint" id="auto-ap-hint"></p>
+    </section>
+
+    <section aria-labelledby="auto-heaven-title" style="margin-top:26px;">
+      <h3 id="auto-heaven-title">Heavenly Number</h3>
+      <p class="hint" style="margin:0 0 12px;">Gives you Heavenly Number on its own, based on your p and q: 0.01 &times; &radic;(p &times; q) per second.</p>
+      <label class="toggle"><input type="checkbox" id="auto-heaven-on"><span>Automatic gain enabled</span></label>
+      <p class="hint">Currently <b id="auto-heaven-rate">0</b> per second.</p>
+    </section>
+
+    <p class="auto-note" id="auto-note" role="status"></p>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  // Load OmegaNum.js: CDN first, then a local copy next to this file (for offline use).
+  var SOURCES = [
+    "https://cdn.jsdelivr.net/npm/omega_num.js@0.7.0",
+    "https://cdn.jsdelivr.net/npm/omega_num.js@0.7.0/OmegaNum.js",
+    "https://cdn.jsdelivr.net/npm/omega_num.js",
+    "OmegaNum.js"
+  ];
+
+  function load(i) {
+    if (typeof OmegaNum !== "undefined") return start();
+    if (i >= SOURCES.length) {
+      document.getElementById("err").hidden = false;
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = SOURCES[i];
+    s.onload = function () { load(i + 1); };
+    s.onerror = function () { load(i + 1); };
+    document.head.appendChild(s);
+  }
+
+  function start() {
+    var DEFAULT_P_RATE = 0.001; // base p per second
+    var SAVE_KEY = "pp-game-save-v2";
+    var SETTINGS_KEY = "pp-game-settings-v1";
+
+    var THEMES = [["system", "System"], ["light", "Light"], ["dark", "Dark"], ["custom", "Custom"]];
+    var CUSTOM_DEFAULT = { bg: "#1b1030", panel: "#26193d", ink: "#f3eaff", accent: "#ff7ab8", q: "#7ee0ff" };
+    var CUSTOM_KEYS = [["bg", "Background"], ["panel", "Panels"], ["ink", "Text"], ["accent", "Accent (p)"], ["q", "Variables q and r"]];
+    var NOTATIONS = [
+      ["scientific", "Scientific"],
+      ["engineering", "Engineering"],
+      ["abbreviations", "Abbreviations"],
+      ["letters", "Letters"],
+      ["logarithm", "Logarithm"]
+    ];
+    var AUTOSAVES = [[10, "Every 10 seconds"], [30, "Every 30 seconds"], [60, "Every minute"], [0, "Off"]];
+    var AUTO_DELAYS = [[0, "Instantly"], [5, "5 seconds"], [30, "30 seconds"], [300, "5 minutes"]];
+
+    function $(id) { return document.getElementById(id); }
+    function has(list, v) { return list.some(function (x) { return x[0] === v; }); }
+
+    var storageOK = (function () {
+      try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); return true; }
+      catch (e) { return false; }
+    })();
+
+    // ---------- settings ----------
+    var settings = {
+      theme: "system", notation: "scientific", autosave: 10,
+      devMode: false, devPGain: DEFAULT_P_RATE, devSpeed: 1,
+      ticker: true,
+      custom: { bg: CUSTOM_DEFAULT.bg, panel: CUSTOM_DEFAULT.panel, ink: CUSTOM_DEFAULT.ink, accent: CUSTOM_DEFAULT.accent, q: CUSTOM_DEFAULT.q }
+    };
+    (function () {
+      if (!storageOK) return;
+      try {
+        var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+        if (!s) return;
+        if (has(THEMES, s.theme)) settings.theme = s.theme;
+        if (has(NOTATIONS, s.notation)) settings.notation = s.notation;
+        if (has(AUTOSAVES, s.autosave)) settings.autosave = s.autosave;
+        // devMode is never restored from storage; it is only granted by GitHub verification (see "developer access")
+        if (s.ticker === false) settings.ticker = false;
+        if (s.custom && typeof s.custom === "object") {
+          for (var ck in CUSTOM_DEFAULT) {
+            if (typeof s.custom[ck] === "string" && /^#[0-9a-fA-F]{6}$/.test(s.custom[ck])) settings.custom[ck] = s.custom[ck];
+          }
+        }
+        if (typeof s.devPGain === "number" && isFinite(s.devPGain) && s.devPGain >= 0) settings.devPGain = s.devPGain;
+        if (typeof s.devSpeed === "number" && isFinite(s.devSpeed) && s.devSpeed > 0 && s.devSpeed <= 1e6) settings.devSpeed = s.devSpeed;
+      } catch (e) {}
+    })();
+
+    function saveSettings() {
+      if (!storageOK) return;
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
+    }
+
+    // ---- custom theme: derive the full palette from five picked colors ----
+    var CUSTOM_VARS = ["--bg", "--panel", "--ink", "--muted", "--accent", "--on-accent", "--rule", "--q", "--r",
+                       "--heaven-bg", "--heaven-border", "--heaven-glow-1", "--heaven-glow-2"];
+    function hexRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+    function rgbHex(c) {
+      return "#" + c.map(function (v) { return ("0" + Math.round(Math.max(0, Math.min(255, v))).toString(16)).slice(-2); }).join("");
+    }
+    function mixHex(a, b, t) {
+      var x = hexRgb(a), y = hexRgb(b);
+      return rgbHex([x[0] + (y[0] - x[0]) * t, x[1] + (y[1] - x[1]) * t, x[2] + (y[2] - x[2]) * t]);
+    }
+    function luminance(h) {
+      var c = hexRgb(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+    function rgbaOf(h, a) { var c = hexRgb(h); return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+    function applyCustomVars(root) {
+      var c = settings.custom;
+      function set(k, v) { root.style.setProperty(k, v); }
+      set("--bg", c.bg); set("--panel", c.panel); set("--ink", c.ink); set("--accent", c.accent); set("--q", c.q);
+      set("--muted", mixHex(c.ink, c.bg, 0.38));
+      set("--rule", mixHex(c.bg, c.ink, 0.2));
+      var la = luminance(c.accent);
+      set("--on-accent", (1.05 / (la + 0.05)) > ((la + 0.05) / (luminance("#1a1006") + 0.05)) ? "#ffffff" : "#1a1006");
+      set("--r", mixHex(c.q, c.accent, 0.5));
+      set("--heaven-bg", mixHex(c.bg, c.accent, 0.14));
+      set("--heaven-border", c.accent);
+      set("--heaven-glow-1", rgbaOf(c.ink, 0.4));
+      set("--heaven-glow-2", rgbaOf(c.accent, 0.45));
+      root.style.colorScheme = luminance(c.bg) > 0.4 ? "light" : "dark";
+    }
+
+    function applyTheme() {
+      var r = document.documentElement;
+      CUSTOM_VARS.forEach(function (k) { r.style.removeProperty(k); });
+      r.style.removeProperty("color-scheme");
+      if (settings.theme === "system") r.removeAttribute("data-theme");
+      else r.setAttribute("data-theme", settings.theme);
+      if (settings.theme === "custom") applyCustomVars(r);
+    }
+    applyTheme();
+
+    // Developer mode overrides (only active while the toggle is on)
+    function baseRate() { return settings.devMode ? settings.devPGain : DEFAULT_P_RATE; }
+    function gameSpeed() { return settings.devMode ? settings.devSpeed : 1; }
+
+    // ---------- number formatting ----------
+    var ABBR = ["K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd","Td","Qad","Qid","Sxd","Spd","Ocd","Nod",
+                "Vg","Uvg","Dvg","Tvg","Qavg","Qivg","Sxvg","Spvg","Ocvg","Novg","Tg"];
+
+    function letters(i) {
+      var s = "";
+      while (i > 0) { i--; s = String.fromCharCode(97 + (i % 26)) + s; i = Math.floor(i / 26); }
+      return s;
+    }
+
+    function plain(v, d) {
+      if (!(v > 0)) return (0).toFixed(d);
+      if (v < 1) {
+        var dec = Math.min(12, d + Math.max(0, -Math.floor(Math.log10(v))));
+        return v.toFixed(dec);
+      }
+      return v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    // Split x into mantissa (1 to <10) and integer exponent, or null if the exponent itself is enormous.
+    function decompose(x) {
+      if (x.lt(1e300)) {
+        var parts = x.toNumber().toExponential(12).split("e");
+        return { m: parseFloat(parts[0]), e: parseInt(parts[1], 10) };
+      }
+      var lg = x.log10();
+      if (lg.gte(1e15)) return null;
+      var L = lg.toNumber(), e = Math.floor(L);
+      return { m: Math.pow(10, L - e), e: e };
+    }
+
+    function expStr(e) {
+      if (e < 1e9) return String(e);
+      var parts = e.toExponential(12).split("e");
+      return sci(parseFloat(parts[0]), parseInt(parts[1], 10), 3);
+    }
+
+    function sci(m, e, d) {
+      var s = m.toFixed(d);
+      if (parseFloat(s) >= 10) { m /= 10; e += 1; s = m.toFixed(d); }
+      return s + "e" + expStr(e);
+    }
+
+    function eng(m, e, d) {
+      var r = e % 3, e3 = e - r, m3 = m * Math.pow(10, r), s = m3.toFixed(d);
+      if (parseFloat(s) >= 1000) { e3 += 3; m3 /= 1000; s = m3.toFixed(d); }
+      return { s: s, e3: e3 };
+    }
+
+    function format(x, d, notation) {
+      var short = notation === "abbreviations" || notation === "letters";
+      if (x.lt(short ? 1e3 : 1e6)) return plain(x.toNumber(), d);
+
+      var dc = decompose(x);
+      if (!dc) return x.toString().replace(/^(\d+\.\d{3})\d+/, "$1");
+
+      var g, idx;
+      switch (notation) {
+        case "engineering":
+          g = eng(dc.m, dc.e, 2);
+          return g.s + "e" + expStr(g.e3);
+        case "abbreviations":
+          g = eng(dc.m, dc.e, 2);
+          idx = g.e3 / 3;
+          if (idx <= ABBR.length) return g.s + " " + ABBR[idx - 1];
+          return sci(dc.m, dc.e, 3);
+        case "letters":
+          g = eng(dc.m, dc.e, 2);
+          idx = g.e3 / 3;
+          if (idx <= 18278) return g.s + " " + letters(idx);
+          return sci(dc.m, dc.e, 3);
+        case "logarithm":
+          return "e" + x.log10().toNumber().toFixed(3);
+        default:
+          return sci(dc.m, dc.e, 3);
+      }
+    }
+
+    function fmt(x, d) { return format(x, d, settings.notation); }
+    function fmtN(v, d) { return fmt(new OmegaNum(v), d); } // for plain JS numbers
+    function pct(v) { return Math.round(v * 100).toLocaleString() + "%"; }
+
+    // ---------- game state ----------
+    var number = new OmegaNum(0);
+    var p = new OmegaNum(1);
+    var levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0, pp: 0 };
+    var costs = {};
+    var maxNumber = new OmegaNum(0); // highest number ever reached
+
+    // Ascension
+    var ASCEND_THRESHOLD = new OmegaNum(2).pow(1024); // ~1.8e308, right at the wall of a double
+    var heavenlyNumber = new OmegaNum(0); // earned by tapping in the heaven screen
+    var ascensionPoints = new OmegaNum(0); // spendable currency, earned by ascending (+1 per ascension)
+    var hasAscendedUnlocked = false;
+    var totalAscensions = 0; // stat: how many times Ascend has been confirmed, ever
+    var ascensionUpgrades = { heavenlyGale: false, heavenlyStrikedown: false, kinetic: false, ascendantVariable: false, perfection: false, automatic: false, duplication: false, heavenlyRestriction: false, research: false };
+    var q = new OmegaNum(0); // "The Ascendant Variable" \u2014 starts at 1 once unlocked, grows 0.005/s
+
+    // Automation, unlocked by the "Automatic" ascension upgrade and configured in the Automation tab.
+    function defaultAutoCfg() {
+      return { buy: true, ascend: false, delay: 0, heaven: true, nAt: "", apAt: 0, nAtNum: null,
+               ids: { add: true, mul: true, pro: true, exp: true, hyper: true, pp: true } };
+    }
+    var autoCfg = defaultAutoCfg();
+    var wallSince = 0; // performance.now() when the number first reached the wall this run (0 = not there)
+
+    // ---------- challenges (unlocked by the "Heavenly Restriction" ascension upgrade) ----------
+    var CH_MAX = 3;
+    var CH_MAXES = [3, 3, 3, 3, 1];   // Challenge 5 ("Unlimited") is completed once
+    var INF_NUM = 1.7976931348623157e308; // the ceiling for plain-number variables while infinity is unbroken
+    var CH_GOALS = [
+      ["1e50", "1e100", "1e308"],
+      ["1e20", "1e40", "1e80"],
+      ["1e100", "1e200", "1e300"],
+      ["1.5e9", "2.25e18", "6.25e54"],
+      ["1e150"]
+    ].map(function (row) { return row.map(function (s) { return new OmegaNum(s); }); });
+    var C1_P_GAIN = 0.5, C1_EXP = 0.8, C1_REWARD_EXP = 0.03;          // Challenge 1: p gain x0.5, p^0.8; reward ^(1 + 0.03 per completion)
+    var C2_DECAY = 1.01, C2_N_REWARD = 1.1, C2_Q_REWARD = 0.5;        // Challenge 2: n gain / 1.01 each second; reward x1.1^c and q gain x(1 + 0.5c)
+    var C3_STATIC_R = 2, C3_APPEAR_CHANCE = 0.001, C3_DEFEAT_EXP = 0.75; // Challenge 3: r sits at a static 2; 1/1000 chance per second to appear; defeating it (a click) raises n to ^0.75
+    var C3_RGAIN = 0.002, C3_P_BOOST = 0.1, C3_N_BOOST = 0.3;         // Challenge 3 reward: permanent r
+    var C4_DIV = 10, C4_FEED = 0.0002, ALEPH_RATE = 0.0001;           // Challenge 4: p and n gain / (10 x Aleph); reward: permanent Aleph
+    var C5_GAIN_EXP = 0.1, C5_S_EXP = 0.2, C5_S_MIN_DIV = 1.001;      // Challenge 5: every gain ^0.1; s gains t^0.2 per second; divisor of at least 1.001
+    var C5_BUFF_TIME = 30, C5_SAC = 0.1;                              // sacrificing 10% of the Heavenly Number clears s and doubles p gain for 30 s
+    var HQ_COEF = 0.1;                                                // the heavenly number boosts q gain by 1 + 0.1 * log10(H)
+
+    var challenges = { done: [0, 0, 0, 0, 0], active: 0 };
+    var chTime = 0;    // seconds spent in the current challenge run (Challenge 2's decay)
+    var chR = C3_STATIC_R; // Challenge 3's r: always a static 2 while inside, regardless of appearance
+    var rAppeared = false; // whether r has randomly appeared and needs to be clicked away
+    var chAleph = 0;   // Challenge 4's Aleph, feeding on your number (starts at 0)
+    var sVar = 0;      // Challenge 5's Subduer, s
+    var sBuff = 0;     // seconds left of the x2 p gain from sacrificing
+    var rVar = 1;      // permanent r (its size, always shown as negative), unlocked by Challenge 3
+    var aleph = 0;     // permanent Aleph, unlocked by Challenge 4 (starts at 0)
+    var matter = 0;              // Research: matter, collected by clicking the circles in the Research tab
+    var matterUnlocked = false;  // the Matter panel unlocks the first time the Research tab is opened
+
+    function chActive(id) { return challenges.active === id; }
+    function chDone(id) { return challenges.done[id - 1]; }
+    function chMax(id) { return CH_MAXES[id - 1]; }
+    function chGoal(id) { var c = chDone(id); return c >= chMax(id) ? null : CH_GOALS[id - 1][c]; }
+    // Break Infinity: completing Challenge 5 lifts the 1.8e308 clamps and lets the number pass the wall.
+    function brokenInfinity() { return challenges.done[4] >= 1; }
+    function challenge5Unlocked() { return challenges.done[0] >= 3 && challenges.done[1] >= 3 && challenges.done[2] >= 3 && challenges.done[3] >= 3; }
+    // Challenge 5: every kind of gain is raised to ^0.1.
+    function c5Pow(v) { return chActive(5) ? Math.pow(v, C5_GAIN_EXP) : v; }
+    // Challenge 5: n gain is divided by the cube root of s, never by less than 1.001.
+    function c5Divisor() { return chActive(5) ? Math.max(C5_S_MIN_DIV, Math.cbrt(sVar)) : 1; }
+    // While infinity is unbroken, every variable is clamped at 1.8e308 too.
+    function clampAll() {
+      if (p.gt(ASCEND_THRESHOLD)) p = ASCEND_THRESHOLD;
+      if (q.gt(ASCEND_THRESHOLD)) q = ASCEND_THRESHOLD;
+      if (heavenlyNumber.gt(ASCEND_THRESHOLD)) heavenlyNumber = ASCEND_THRESHOLD;
+      rVar = Math.min(rVar, INF_NUM); aleph = Math.min(aleph, INF_NUM); matter = Math.min(matter, INF_NUM);
+      chAleph = Math.min(chAleph, INF_NUM); sVar = Math.min(sVar, INF_NUM);
+      if (chR > INF_NUM) chR = INF_NUM; else if (chR < -INF_NUM) chR = -INF_NUM;
+    }
+    function rUnlocked() { return chDone(3) >= 1; }
+    function alephUnlocked() { return chDone(4) >= 1; }
+    // Challenge 1: the p in the formula gets ^0.8 while inside, and a permanent exponent from completions.
+    function c1Exponent() { return (chActive(1) ? C1_EXP : 1) * (1 + C1_REWARD_EXP * chDone(1)); }
+    // Challenge 2: inside, number gain is divided by 1.01 every second (compounding).
+    function c2Divisor() { return chActive(2) ? new OmegaNum(C2_DECAY).pow(chTime) : new OmegaNum(1); }
+    function c2NMult() { return Math.pow(C2_N_REWARD, chDone(2)); }
+    function c2QMult() { return 1 + C2_Q_REWARD * chDone(2); }
+    // Challenge 3 reward: r boosts p and n gain, scaled by completions.
+    function rPMult() { return rUnlocked() ? 1 + C3_P_BOOST * chDone(3) * Math.sqrt(rVar) : 1; }
+    function rNMult() { return rUnlocked() ? 1 + C3_N_BOOST * chDone(3) * Math.sqrt(rVar) : 1; }
+    function rGainRate() { return c5Pow(C3_RGAIN * chDone(3)); }
+    // Challenge 4: inside, p and n gain are divided by 10 x Aleph (never below 1). Reward: permanent Aleph.
+    function c4Divisor() { return chActive(4) ? Math.max(1, C4_DIV * (1 + chAleph)) : 1; }
+    function alephGainRate() { return c5Pow(ALEPH_RATE * chDone(4) * ppQMult()); }
+    // Aleph starts at 0, so its boosts are built on (1 + Aleph) and start at x1.
+    function alephEff() { return 1 + aleph; }
+    function alephHeavenMult() { return alephUnlocked() ? alephEff() * alephEff() : 1; }  // Heavenly Number gains
+    function alephApMult() { return alephUnlocked() ? Math.sqrt(alephEff()) : 1; }        // AP gain
+    function alephUpMult() { return alephUnlocked() ? Math.pow(alephEff(), 0.1) : 1; }    // effective upgrade levels
+    // ---------- upgrade milestones, Prudent Processing and Matter ----------
+    var PP_UP = 0.12, PP_P = 0.02, PP_QA = 0.1;
+    // Every upgrade doubles all of its effects for every 10 times it has been bought.
+    function mile(L) { return Math.pow(2, Math.floor(L / 10)); }
+    function ppEff() { return levels.pp * mile(levels.pp); }
+    // Aleph and Prudent Processing make every other upgrade act as if it had more levels.
+    function upgradeBoost(id) { var b = alephUpMult(); if (id !== "pp") b *= 1 + PP_UP * ppEff(); return b; }
+    function effLevels(id) { return levels[id] * mile(levels[id]) * upgradeBoost(id); }
+    // Prudent Processing: a slight p gain boost from p and its level, and a boost to q and Aleph gain.
+    function ppPMult() {
+      var e = ppEff();
+      if (e <= 0) return 1;
+      var lp = p.add(1).log10().toNumber();
+      return 1 + PP_P * e * (isFinite(lp) ? lp : 1e300);
+    }
+    function ppQMult() { return 1 + PP_QA * ppEff(); }
+    // Matter (Research): boosts p gain and q gain, and adds an exponent to the p in the formula.
+    function matterLog() { return matter >= 1 ? Math.log10(matter) : 0; }
+    function matterPMult() { return matterUnlocked ? 1 + Math.log10(1 + matter) : 1; }
+    function matterQMult() { return matterUnlocked ? 1 + 0.5 * Math.log10(1 + matter) : 1; }
+    function matterExp() { return matterUnlocked ? 1 + matterLog() / 16 : 1; } // log10(matter^(1/16)) + 1
+    function upgradeLocked(u) { return (u.unlockedBy && !ascensionUpgrades[u.unlockedBy]) || (u.unlockedWhen && !u.unlockedWhen()); }
+    function heavenlyQMult() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(HQ_COEF).add(1).toNumber() : 1; }
+
+    var ASCENSION_UPS = [
+      {
+        id: "heavenlyGale", name: "Heavenly Gale", cost: 1, requires: null,
+        desc: "A one-time buy. Gives a permanent \u00d71.5 boost to p gain, back in the mortal game too."
+      },
+      {
+        id: "heavenlyStrikedown", name: "Heavenly Strikedown", cost: 1, requires: ["heavenlyGale"],
+        desc: "A one-time buy. Adds +1.5 to p in the formula, multiplies p by \u00d71.4 on both sides of the formula, and raises p to the ^1.05 power in the formula."
+      },
+      {
+        id: "kinetic", name: "Kinetic", cost: 2, requires: ["heavenlyGale"],
+        desc: "A one-time buy. Adds a logarithmic bonus to the formula based on your current p amount."
+      },
+      {
+        id: "ascendantVariable", name: "The Ascendant Variable", cost: 3, requires: ["heavenlyStrikedown", "kinetic"],
+        desc: "A one-time buy. Unlocks a new variable, q, starting at 1 and growing 0.005/s. q boosts p gain by log10(q) + 1 and, based on itself, by another \u00d7q^0.1. It also boosts the p formula across the board (exponent, multiplier, and p itself) by \u00d7(1.15 + 0.03 \u00d7 log10(q)), so the boost keeps growing as q does."
+      },
+      {
+        id: "perfection", name: "Perfection", cost: 6, requires: ["ascendantVariable"],
+        desc: "A one-time buy. Gives \u00d71.25 q gain, \u00d71.5 p gain, doubles the additive in the p formula, multiplies the formula's shared multiplier by \u00d71.6\u03056 (both sides), and adds a static ^1.05 exponent to p in the formula. Also unlocks the Hyper Tower upgrade back in the mortal game."
+      },
+      {
+        id: "automatic", name: "Automatic", cost: 10, requires: ["perfection"],
+        desc: "A one-time buy. Automatically buys your upgrades for free, without ever spending p. Adds an Automation tab (left of the Heaven button) where you configure it, unlocks auto-ascension, and gives you Heavenly Number on its own based on your p and q amounts."
+      },
+      {
+        id: "duplication", name: "Duplication", cost: 20, requires: ["automatic"],
+        desc: "A one-time buy. Doubles the ascension points you earn from every ascension."
+      },
+      {
+        id: "heavenlyRestriction", name: "Heavenly Restriction", cost: 50, requires: ["duplication"],
+        desc: "A one-time buy. Unlocks Challenges: a new button left of the Heaven button leads to four challenges, each completable three times, with permanent rewards."
+      },
+      {
+        id: "research", name: "Research", cost: 600, requires: ["heavenlyRestriction"],
+        desc: "A one-time buy. Unlocks a Research tab (left of Challenges). Opening it reveals the Matter panel: click the circles that spawn around it to collect matter. Matter boosts p gain and q gain, and adds an exponent to the p in the formula of log10(matter^(1/16)) + 1."
+      }
+    ];
+
+    // Number freezes hard at the wall every single run \u2014 Ascend is required every time you reach it.
+    function numberFrozen() { return !brokenInfinity() && number.gte(ASCEND_THRESHOLD); }
+    function heavenlyPMult() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.1).add(1).toNumber() : 1; }
+    function heavenlyNExp() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.05).add(1).toNumber() : 1; }
+    function heavenlySlightBoost() { return heavenlyNumber.gte(1) ? heavenlyNumber.log10().mul(0.001).add(1).toNumber() : 1; }
+    function galeMult() { return ascensionUpgrades.heavenlyGale ? 1.5 : 1; }
+    function qPBoost() { return (ascensionUpgrades.ascendantVariable && !chActive(4) && q.gte(1)) ? q.log10().add(1).toNumber() : 1; }
+    // Your current p amount very slightly boosts p gain: log10(p^0.01) + 1 = 0.01*log10(p) + 1.
+    function selfPBoost(pv) { return pv.gte(1) ? pv.log10().mul(0.01).add(1).toNumber() : 1; }
+    function perfectionPMult() { return ascensionUpgrades.perfection ? 1.5 : 1; }
+    // q boosts p gain a second time based on itself: q^0.1 (exactly 1 at q = 1, so nothing jumps when q unlocks).
+    function qSelfPBoost() { return (ascensionUpgrades.ascendantVariable && !chActive(4) && q.gt(1)) ? q.pow(Q_SELF_EXP).toNumber() : 1; }
+    // The formula boost from q is no longer flat: it starts at ×1.15 and grows with q.
+    function qFormulaBoost() {
+      if (chActive(4)) return 1; // Challenge 4 clamps q: it can't boost the formula
+      return (ascensionUpgrades.ascendantVariable && q.gt(1)) ? Q_FORMULA_BOOST + Q_FORMULA_PER_LOG * q.log10().toNumber() : Q_FORMULA_BOOST;
+    }
+    function qGainRate() { return c5Pow(0.005 * (ascensionUpgrades.perfection ? PERFECTION_Q_MUL : 1) * heavenlyQMult() * c2QMult() * matterQMult() * ppQMult()); }
+    // Automatic: the Heavenly Number grows on its own, based on your p and q amounts.
+    function autoHeavenOm() {
+      if (!ascensionUpgrades.automatic || !autoCfg.heaven || !q.gt(0)) return new OmegaNum(0);
+      var v = p.mul(q).pow(0.5).mul(AUTO_HEAVEN_COEF).mul(alephHeavenMult());
+      return chActive(5) ? v.pow(C5_GAIN_EXP) : v;
+    }
+    function autoHeavenRate() { var v = autoHeavenOm().toNumber(); return isFinite(v) ? v : INF_NUM; }
+    // Ascension points earned per ascension (Duplication doubles it).
+    // Past 2^1024 (once infinity is broken): y = log10(log10(n)), then f(y) = 0.0040142 * 5.73299^y + 1.82361.
+    var AP_A = 0.0040142, AP_B = 5.73299, AP_C = 1.82361;
+    function apFormula(y) { return AP_A * Math.pow(AP_B, y) + AP_C; }
+    function apBaseFor(n) {
+      if (!brokenInfinity() || !n.gte(ASCEND_THRESHOLD)) return 1;
+      var y = n.log10().log10().toNumber();
+      var f = apFormula(y);
+      return isFinite(f) ? Math.max(1, Math.floor(f)) : 1e300;
+    }
+    // Duplication and Aleph multiply whatever the base AP is.
+    function apMultiply(base) {
+      var b = base * (ascensionUpgrades.duplication ? 2 : 1);
+      return alephUnlocked() ? Math.max(b, Math.floor(b * alephApMult())) : b;
+    }
+    function apPerAscension() { return apMultiply(apBaseFor(number)); }
+    // The smallest n whose ascension gives at least `target` AP (as an OmegaNum).
+    function nForAp(target) {
+      var lo = 1, hi = Math.max(1, Math.ceil(target));
+      while (lo < hi) { var mid = Math.floor((lo + hi) / 2); if (apMultiply(mid) >= target) hi = mid; else lo = mid + 1; }
+      var base = lo;
+      var y = Math.log((base - AP_C) / AP_A) / Math.log(AP_B);
+      var yWall = ASCEND_THRESHOLD.log10().log10().toNumber();
+      if (!isFinite(y) || y <= yWall) return ASCEND_THRESHOLD;
+      return new OmegaNum(10).pow(new OmegaNum(10).pow(y + 1e-9));
+    }
+    var STRIKE_ADD = 1.5, STRIKE_MUL = 1.4, STRIKE_EXP = 1.05, Q_FORMULA_BOOST = 1.15;
+    var Q_FORMULA_PER_LOG = 0.03; // the formula boost from q grows by this much per power of ten of q
+    var Q_SELF_EXP = 0.1;         // q also boosts p gain by q^0.1, based on itself
+    var AUTO_HEAVEN_COEF = 0.01;  // Automatic: heavenly number per second = coef * sqrt(p * q)
+    var PERFECTION_ADD_MUL = 2, PERFECTION_MUL = 5 / 3, PERFECTION_EXP = 1.05, PERFECTION_Q_MUL = 1.25;
+
+    // Number very slightly boosts p gain: log10(n^0.00001) = 0.00001 * log10(n), never below 0.
+    // Soft capped, and MUCH harder past 10^308 (right around where doubles start to overflow) \u2014
+    // growth asymptotically approaches a ceiling instead of continuing to scale with log10(n).
+    function numberPBonus(n) {
+      if (n.lte(1)) return 0;
+      var lg = n.log10().toNumber();
+      if (!isFinite(lg)) lg = 1e18;
+      var THRESH = 308;
+      var raw;
+      if (lg <= THRESH) {
+        raw = lg * 0.00001;
+      } else {
+        var atThresh = THRESH * 0.00001;
+        var excess = lg - THRESH;
+        raw = atThresh + 0.002 * (1 - 1 / (1 + excess / 1e6));
+      }
+      return raw > 0 ? raw : 0;
+    }
+
+    // Derived values (recomputed whenever a level changes)
+    var potency = 1;    // Additive potency from Propulsion
+    var addBonus = 0;   // added to p inside the formula
+    var mulFactor = 1;  // multiplies the gain formula
+    var expBoost = 1;   // extra exponent multiplier from the Exponent upgrade
+    var hyperBoost = 1; // extra exponent multiplier from the Hyper Tower upgrade
+    var pRate = DEFAULT_P_RATE; // p gained per second
+
+    // Upgrade definitions
+    var UPS = [
+      {
+        id: "add", name: "Additive", base: 0.1, mult: 1.25,
+        desc: "Adds +0.2 to p inside the gain formula for each level. Your actual p amount isn't changed. Cost grows \u00d71.25 per level, escalating further with each purchase.",
+        labels: ["Bonus to p"],
+        values: function () { return ["+" + fmtN(addBonus, 2)]; }
+      },
+      {
+        id: "mul", name: "Multiplier", base: 2, mult: 2,
+        desc: "Multiplies the gain formula by \u00d71.1, and by +\u00d70.1 more for each further level. Also makes p gain 8% faster per level. Cost grows \u00d72 per level, escalating further with each purchase.",
+        labels: ["Gain multiplier", "p gain"],
+        values: function () { return ["\u00d7" + fmtN(mulFactor, 2), "+" + pct(0.08 * effLevels("mul"))]; }
+      },
+      {
+        id: "pro", name: "Propulsion", base: 10, mult: 3,
+        desc: "Makes Additive 10% more potent per level and p gain 16% faster per level. Once owned, the exponent p is multiplied by log10(number^(1/100)) + 1, softly capped past \u00d71.25 so it keeps climbing without going astronomical. Cost grows \u00d73 per level, escalating further with each purchase.",
+        labels: ["Additive potency", "p gain", "Exponent boost"],
+        values: function () {
+          return ["+" + pct(0.1 * effLevels("pro")), "+" + pct(0.16 * effLevels("pro")), "\u00d7" + fmt(kBoost(number), 2)];
+        }
+      },
+      {
+        id: "exp", name: "Exponent", base: 50, mult: 10,
+        desc: "Raises the exponent used in the gain formula by an extra \u00d71.02 per level, compounding. Cost grows \u00d710 per level, escalating further with each purchase.",
+        labels: ["Exponent boost"],
+        values: function () { return ["\u00d7" + fmtN(expBoost, 3)]; }
+      },
+      {
+        id: "hyper", name: "Hyper Tower", base: 125, mult: 5, unlockedBy: "perfection",
+        desc: "Unlocked by the Perfection ascension upgrade. Raises the exponent used in the gain formula by an extra \u00d71.05 per level, compounding. Cost grows \u00d75 per level, escalating further with each purchase.",
+        labels: ["Exponent boost"],
+        values: function () { return ["\u00d7" + fmtN(hyperBoost, 3)]; }
+      },
+      {
+        id: "pp", name: "Prudent Processing", base: 1000, mult: 10, unlockedWhen: function () { return brokenInfinity(); },
+        desc: "Unlocked by breaking infinity. Slightly boosts p gain based on your p and this upgrade's level, boosts q gain and Aleph gain by 10% per level, and makes every other upgrade 12% more potent per level. Costs 1,000 p at first and grows \u00d710 per level, escalating further with each purchase.",
+        labels: ["p gain", "q and Aleph gain", "Other upgrades"],
+        values: function () { return ["\u00d7" + fmtN(ppPMult(), 3), "\u00d7" + fmtN(ppQMult(), 2), "+" + pct(PP_UP * ppEff())]; }
+      }
+    ];
+
+    // Cost of a single upgrade level grows geometrically: base * ratio^L, where ratio = mult * 1.25
+    // (each purchase's price ratio is boosted x1.25 over the upgrade's own base multiplier). This
+    // keeps the curve smooth and sustainable for long-run play, rather than exploding without bound.
+    function costRatio(u) { return u.mult * 1.25; }
+
+    // Total cost of buying `count` more levels starting from level `fromLevel`, via the geometric
+    // series sum \u2014 closed form, so bulk-buy math stays fast even at huge levels.
+    function costOfLevels(u, fromLevel, count) {
+      if (count <= 0) return new OmegaNum(0);
+      var r = costRatio(u);
+      var seriesSum = (Math.pow(r, count) - 1) / (r - 1);
+      return new OmegaNum(r).pow(fromLevel).mul(u.base * seriesSum);
+    }
+
+    // How many more levels of `u` can be bought right now (binary search over the closed-form cost).
+    function maxAffordable(u) {
+      var budget = p.sub(1); // keep p from ever hitting 0
+      if (budget.lt(0)) return 0;
+      var lo = 0, hi = 1;
+      while (hi < 1e7 && costOfLevels(u, levels[u.id], hi).lte(budget)) hi *= 2;
+      if (costOfLevels(u, levels[u.id], 1).gt(budget)) return 0;
+      while (lo < hi) {
+        var mid = Math.ceil((lo + hi) / 2);
+        if (costOfLevels(u, levels[u.id], mid).lte(budget)) lo = mid; else hi = mid - 1;
+      }
+      return lo;
+    }
+
+    function updateDerived() {
+      UPS.forEach(function (u) {
+        costs[u.id] = new OmegaNum(costRatio(u)).pow(levels[u.id]).mul(u.base);
+      });
+      // Aleph makes every upgrade act as if it had more levels (costs still use your real levels).
+      // Every 10 levels of an upgrade doubles its effects (mile), and Prudent Processing makes the rest 12% more potent per level.
+      potency = 1 + 0.1 * effLevels("pro");
+      addBonus = 0.2 * effLevels("add") * potency;
+      mulFactor = 1 + 0.1 * effLevels("mul");
+      expBoost = Math.pow(1.02, effLevels("exp"));
+      hyperBoost = Math.pow(1.05, effLevels("hyper"));
+      pRate = baseRate() * (1 + 0.08 * effLevels("mul")) * (1 + 0.16 * effLevels("pro"));
+    }
+    updateDerived();
+
+    // Propulsion: multiplier on the exponent p = log10(number^(1/100)) + 1 = log10(number)/100 + 1,
+    // soft-capped past x1.25 so it keeps growing but stops going astronomical. Past the cap, the
+    // excess grows by square root instead of linearly \u2014 tapered, but still a potent climb.
+    // Only active once Propulsion is owned, and never below 1 (so numbers under 1 don't shrink it).
+    var K_SOFTCAP = 1.25;
+    function kBoost(n) {
+      if (levels.pro < 1 || n.lte(1)) return new OmegaNum(1);
+      var raw = n.log10().div(100).add(1);
+      if (raw.lte(K_SOFTCAP)) return raw;
+      return raw.sub(K_SOFTCAP).pow(0.5).add(K_SOFTCAP);
+    }
+
+    // Number gain per second:
+    //   mulFactor * ( b ^ (b * k * expBoost * heavenlyNExp * heavenlySlight) - 1 ) * heavenlySlight,
+    //   b = p + addBonus,   k = kBoost(number)
+    // Number gain per second. Ascension upgrades layer on:
+    //   Strikedown: p^1.05, then +1.5 additive, then \u00d71.4 (applied to b, so it reaches both the
+    //     base and the exponent since the exponent is built from b).
+    //   Kinetic: + log10(p) additive, based on current p.
+    //   Ascendant Variable (q): \u00d71.15 to p itself, to the exponent, and to the final result.
+    function rate(pv, n) {
+      var hasStrike = ascensionUpgrades.heavenlyStrikedown;
+      var hasKinetic = ascensionUpgrades.kinetic;
+      var hasQ = ascensionUpgrades.ascendantVariable && !chActive(4);
+      var hasPerfection = ascensionUpgrades.perfection;
+      var qBoost = hasQ ? qFormulaBoost() : 1;
+
+      var pEff = hasStrike ? pv.pow(STRIKE_EXP) : pv;
+      if (hasPerfection) pEff = pEff.pow(PERFECTION_EXP);
+      var c1e = c1Exponent();
+      if (c1e !== 1) pEff = pEff.pow(c1e);
+      var mexp = matterExp();
+      if (mexp !== 1) pEff = pEff.pow(mexp); // Matter: an exponent on the p in the formula
+      if (hasQ) pEff = pEff.mul(qBoost);
+
+      var kineticBonus = (hasKinetic && pv.gte(1)) ? pv.log10().toNumber() : 0;
+      var extraAdd = addBonus + (hasStrike ? STRIKE_ADD : 0) + kineticBonus;
+      if (hasPerfection) extraAdd *= PERFECTION_ADD_MUL;
+
+      var b = pEff.add(extraAdd);
+      if (hasStrike) b = b.mul(STRIKE_MUL);
+      if (hasPerfection) b = b.mul(PERFECTION_MUL);
+
+      var slight = heavenlySlightBoost();
+      var e = b.mul(kBoost(n)).mul(expBoost).mul(hyperBoost).mul(heavenlyNExp()).mul(slight);
+      if (hasQ) e = e.mul(qBoost);
+
+      var r = b.pow(e).sub(1).mul(mulFactor).mul(slight);
+      if (hasQ) r = r.mul(qBoost);
+      r = r.mul(c2NMult()).mul(rNMult());
+      if (chActive(2)) r = r.div(c2Divisor());
+      if (chActive(4)) {
+        var raw = r;
+        r = r.div(c4Divisor());
+        var floor1 = raw.lt(1) ? raw : new OmegaNum(1); // n gain never gets divided below 1
+        if (r.lt(floor1)) r = floor1;
+      }
+      if (chActive(5)) r = r.pow(C5_GAIN_EXP).div(c5Divisor());
+      if (!brokenInfinity() && r.gt(ASCEND_THRESHOLD)) r = ASCEND_THRESHOLD; // n gain is clamped at 1.8e308 for now
+
+      return r.lt(0) ? new OmegaNum(0) : r;
+    }
+
+    // p gained per second, with every boost applied.
+    function totalPGain() {
+      var g = (pRate + numberPBonus(number)) * heavenlyPMult() * galeMult() * qPBoost() * qSelfPBoost() * selfPBoost(p) * perfectionPMult() * rPMult() * matterPMult() * ppPMult();
+      if (chActive(1)) g *= C1_P_GAIN;
+      if (chActive(3)) g = Math.min(g, 1 / C3_STATIC_R) / C3_STATIC_R; // r's constant hostile presence
+      if (chActive(4)) g /= c4Divisor();
+      if (chActive(5)) { g = Math.pow(g, C5_GAIN_EXP); if (sBuff > 0) g *= 2; }
+      if (!brokenInfinity() || !isFinite(g)) g = Math.min(g, INF_NUM);
+      return g;
+    }
+
+    function step(dt) {
+      var totalPRate = totalPGain();
+      var pm = p.add(new OmegaNum(totalPRate).mul(dt / 2)); // midpoint for better accuracy
+      if (!numberFrozen()) {
+        number = number.add(rate(pm, number).mul(dt));
+        if (!brokenInfinity() && number.gte(ASCEND_THRESHOLD)) number = ASCEND_THRESHOLD;
+      }
+      p = p.add(new OmegaNum(totalPRate).mul(dt));
+      if (ascensionUpgrades.ascendantVariable) q = q.add(new OmegaNum(qGainRate()).mul(dt));
+      if (ascensionUpgrades.automatic && autoCfg.heaven) heavenlyNumber = heavenlyNumber.add(autoHeavenOm().mul(dt));
+      if (number.gt(maxNumber)) maxNumber = number;
+
+      // challenge variables and permanent challenge rewards
+      var lnN = (chActive(4) && number.gt(1)) ? number.log10().toNumber() : 0;
+      if (chActive(2) || chActive(5)) chTime += dt;
+      if (chActive(5)) {
+        // s (Subduer) gains t^0.2 per second, paused (and cleared) while a sacrifice's x2 p gain lasts
+        if (sBuff > 0) sBuff = Math.max(0, sBuff - dt);
+        else sVar += Math.pow(chTime, C5_S_EXP) * dt;
+      }
+      // r has a 1/1000 chance each second of appearing, and stays that way until clicked away.
+      if (chActive(3) && !rAppeared && Math.random() < C3_APPEAR_CHANCE * dt) rAppeared = true;
+      if (chActive(4)) chAleph += C4_FEED * (1 + lnN) * dt;
+      if (rUnlocked()) rVar += rGainRate() * dt;
+      if (alephUnlocked()) aleph += alephGainRate() * dt;
+      if (!brokenInfinity()) clampAll();
+      else { rVar = Math.min(rVar, INF_NUM); aleph = Math.min(aleph, INF_NUM); matter = Math.min(matter, INF_NUM); chAleph = Math.min(chAleph, INF_NUM); sVar = Math.min(sVar, INF_NUM); }
+    }
+
+    function advance(dt) {
+      if (dt <= 0) return;
+      if (dt <= 1) { step(dt); return; }
+      var steps = Math.min(4000, Math.ceil(dt));
+      var h = dt / steps;
+      for (var i = 0; i < steps; i++) step(h);
+    }
+
+    function canBuy(id) { return p.gte(costs[id].add(1)); }
+
+    var buyMode = 1; // 1, 10, or "max"
+
+    function buyAmount(u) {
+      if (buyMode === "max") return maxAffordable(u);
+      return Math.min(buyMode, maxAffordable(u));
+    }
+
+    function buy(id) {
+      var u = UPS.filter(function (x) { return x.id === id; })[0];
+      var n = buyAmount(u);
+      if (n <= 0) return;
+      var cost = costOfLevels(u, levels[id], n);
+      p = p.sub(cost);
+      if (p.lt(1)) p = new OmegaNum(1); // guard against float rounding
+      levels[id] += n;
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+    }
+
+    // ---------- saving ----------
+    var lastSaved = null;
+
+    function snapshot() {
+      return {
+        v: 4, n: number.toString(), p: p.toString(),
+        l: { a: levels.add, m: levels.mul, r: levels.pro, e: levels.exp, h: levels.hyper, z: levels.pp },
+        mx: maxNumber.toString(),
+        hn: heavenlyNumber.toString(),
+        ap: ascensionPoints.toString(),
+        q: q.toString(),
+        hu: hasAscendedUnlocked,
+        ta: totalAscensions,
+        au: {
+          g: ascensionUpgrades.heavenlyGale,
+          s: ascensionUpgrades.heavenlyStrikedown,
+          k: ascensionUpgrades.kinetic,
+          a: ascensionUpgrades.ascendantVariable,
+          p: ascensionUpgrades.perfection,
+          m: ascensionUpgrades.automatic,
+          d: ascensionUpgrades.duplication,
+          x: ascensionUpgrades.heavenlyRestriction,
+          r: ascensionUpgrades.research
+        },
+        ch: { d: challenges.done, a: challenges.active, t: chTime, r: chR, ap: rAppeared, l: chAleph, s: sVar, b: sBuff },
+        rv: rVar, al: aleph, mt: matter, mu: matterUnlocked,
+        ac: { b: autoCfg.buy, a: autoCfg.ascend, dl: autoCfg.delay, h: autoCfg.heaven, i: autoCfg.ids, nt: autoCfg.nAt, at: autoCfg.apAt },
+        t: Date.now()
+      };
+    }
+
+    function cleanLevel(v) {
+      return (typeof v === "number" && isFinite(v) && v >= 0) ? Math.floor(v) : 0;
+    }
+
+    function parseNAt(str) {
+      str = (str || "").trim();
+      if (!str) return null;
+      try { var x = new OmegaNum(str); return (x.isNaN() || x.lt(1)) ? null : x; } catch (e) { return null; }
+    }
+
+    function cleanAuto(a) {
+      var c = defaultAutoCfg();
+      if (!a || typeof a !== "object") return c;
+      if (typeof a.b === "boolean") c.buy = a.b;
+      if (typeof a.a === "boolean") c.ascend = a.a;
+      if (typeof a.dl === "number" && has(AUTO_DELAYS, a.dl)) c.delay = a.dl;
+      if (typeof a.h === "boolean") c.heaven = a.h;
+      if (a.i && typeof a.i === "object") {
+        for (var k in c.ids) if (typeof a.i[k] === "boolean") c.ids[k] = a.i[k];
+      }
+      if (typeof a.nt === "string") { c.nAt = a.nt.slice(0, 40); }
+      if (typeof a.at === "number" && isFinite(a.at) && a.at >= 0) c.apAt = Math.floor(a.at);
+      c.nAtNum = parseNAt(c.nAt);
+      return c;
+    }
+
+    function cleanCh(c) {
+      var out = { done: [0, 0, 0, 0, 0], active: 0, t: 0, r: C3_STATIC_R, ap: false, l: 0, s: 0, b: 0 };
+      if (!c || typeof c !== "object") return out;
+      if (Array.isArray(c.d)) for (var i = 0; i < 5; i++) out.done[i] = Math.min(CH_MAXES[i], cleanLevel(c.d[i]));
+      if (typeof c.a === "number" && c.a >= 0 && c.a <= 5) out.active = Math.floor(c.a);
+      if (typeof c.t === "number" && isFinite(c.t) && c.t >= 0) out.t = c.t;
+      if (typeof c.r === "number" && isFinite(c.r) && c.r !== 0) out.r = c.r;
+      if (typeof c.ap === "boolean") out.ap = c.ap;
+      if (typeof c.l === "number" && isFinite(c.l) && c.l >= 0) out.l = c.l;
+      if (typeof c.s === "number" && isFinite(c.s) && c.s >= 0) out.s = c.s;
+      if (typeof c.b === "number" && isFinite(c.b) && c.b >= 0) out.b = Math.min(C5_BUFF_TIME, c.b);
+      if (out.active && out.done[out.active - 1] >= CH_MAXES[out.active - 1]) out.active = 0;
+      if (out.active === 5 && !(out.done[0] >= 3 && out.done[1] >= 3 && out.done[2] >= 3 && out.done[3] >= 3)) out.active = 0;
+      return out;
+    }
+    function cleanAleph(v) { return (typeof v === "number" && isFinite(v) && v >= 0) ? v : 0; }
+    function cleanGrow(v) { return (typeof v === "number" && isFinite(v) && v >= 1) ? v : 1; }
+
+    function parseSnapshot(d) {
+      try {
+        if (!d || typeof d.n !== "string" || typeof d.p !== "string") return null;
+        var n = new OmegaNum(d.n), pp = new OmegaNum(d.p);
+        if (n.isNaN() || pp.isNaN() || n.lt(0) || pp.lt(1)) return null;
+        var l = (d.l && typeof d.l === "object") ? d.l : { a: d.a }; // older saves stored only Additive as "a"
+        var mx = null;
+        try { if (typeof d.mx === "string") { var m = new OmegaNum(d.mx); if (!m.isNaN() && m.gte(0)) mx = m; } } catch (e) {}
+        var hn = null;
+        try { if (typeof d.hn === "string") { var h = new OmegaNum(d.hn); if (!h.isNaN() && h.gte(0)) hn = h; } } catch (e) {}
+        var ap = null;
+        try { if (typeof d.ap === "string") { var a = new OmegaNum(d.ap); if (!a.isNaN() && a.gte(0)) ap = a; } } catch (e) {}
+        var qq = null;
+        try { if (typeof d.q === "string") { var qv = new OmegaNum(d.q); if (!qv.isNaN() && qv.gte(0)) qq = qv; } } catch (e) {}
+        var auRaw = (d.au && typeof d.au === "object") ? d.au : {};
+        return {
+          n: n, p: pp,
+          l: { add: cleanLevel(l.a), mul: cleanLevel(l.m), pro: cleanLevel(l.r), exp: cleanLevel(l.e), hyper: cleanLevel(l.h), pp: cleanLevel(l.z) },
+          mx: mx,
+          hn: hn,
+          ap: ap,
+          q: qq,
+          hu: d.hu === true,
+          ta: cleanLevel(d.ta),
+          au: {
+            heavenlyGale: auRaw.g === true || d.hg === true, // d.hg: fallback for older saves
+            heavenlyStrikedown: auRaw.s === true,
+            kinetic: auRaw.k === true,
+            ascendantVariable: auRaw.a === true,
+            perfection: auRaw.p === true,
+            automatic: auRaw.m === true,
+            duplication: auRaw.d === true,
+            heavenlyRestriction: auRaw.x === true,
+            research: auRaw.r === true
+          },
+          ch: cleanCh(d.ch),
+          rv: cleanGrow(d.rv),
+          al: cleanAleph(d.al),
+          mt: cleanAleph(d.mt),
+          mu: d.mu === true,
+          ac: cleanAuto(d.ac),
+          t: typeof d.t === "number" ? d.t : Date.now()
+        };
+      } catch (e) { return null; }
+    }
+
+    function applySnapshot(snap) {
+      number = snap.n; p = snap.p;
+      levels = { add: snap.l.add, mul: snap.l.mul, pro: snap.l.pro, exp: snap.l.exp, hyper: snap.l.hyper, pp: snap.l.pp };
+      maxNumber = (snap.mx && snap.mx.gte(number)) ? snap.mx : number;
+      heavenlyNumber = snap.hn || new OmegaNum(0);
+      ascensionPoints = snap.ap || new OmegaNum(0);
+      q = snap.q || new OmegaNum(0);
+      hasAscendedUnlocked = snap.hu;
+      totalAscensions = snap.ta;
+      ascensionUpgrades = snap.au;
+      autoCfg = snap.ac;
+      wallSince = 0;
+      challenges = { done: snap.ch.done, active: snap.ch.active };
+      chTime = snap.ch.t; chR = snap.ch.r; rAppeared = snap.ch.ap; chAleph = snap.ch.l; sVar = snap.ch.s; sBuff = snap.ch.b;
+      if (!challenges.active) { chTime = 0; chR = C3_STATIC_R; rAppeared = false; chAleph = 0; sVar = 0; sBuff = 0; }
+      rVar = snap.rv; aleph = alephUnlocked() ? snap.al : 0;
+      matter = snap.mt; matterUnlocked = snap.mu;
+      updateDerived();
+    }
+
+    function save() {
+      if (!storageOK) return false;
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()));
+        lastSaved = Date.now();
+        updateSavedLabel();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function loadSave() {
+      if (!storageOK) return 0;
+      try {
+        var snap = parseSnapshot(JSON.parse(localStorage.getItem(SAVE_KEY) || "null"));
+        if (!snap) return 0;
+        applySnapshot(snap);
+        lastSaved = snap.t;
+        return Math.max(0, (Date.now() - snap.t) / 1000);
+      } catch (e) { return 0; }
+    }
+
+    advance(loadSave());
+
+    // ---------- upgrade cards ----------
+    var drawer = $("drawer"), tab = $("drawer-tab"), scrim = $("scrim");
+
+    function buildUpgrades() {
+      var list = $("upgrade-list");
+      UPS.forEach(function (u) {
+        var art = document.createElement("article");
+        art.className = "upgrade";
+
+        var head = document.createElement("div");
+        head.className = "up-head";
+        var h3 = document.createElement("h3");
+        h3.textContent = u.name;
+        var lv = document.createElement("span");
+        lv.className = "up-level";
+        lv.appendChild(document.createTextNode("Level "));
+        var lvNum = document.createElement("b");
+        lvNum.textContent = "0";
+        lv.appendChild(lvNum);
+        head.appendChild(h3); head.appendChild(lv);
+
+        var desc = document.createElement("p");
+        desc.className = "up-desc";
+        desc.textContent = u.desc + " Every 10 levels, all of this upgrade's effects double.";
+
+        var dl = document.createElement("dl");
+        dl.className = "up-stats";
+        u.dds = [];
+        u.labels.concat(["Cost"]).forEach(function (label) {
+          var row = document.createElement("div");
+          var dt = document.createElement("dt");
+          dt.textContent = label;
+          var dd = document.createElement("dd");
+          row.appendChild(dt); row.appendChild(dd);
+          dl.appendChild(row);
+          u.dds.push(dd);
+        });
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn primary up-buy";
+        btn.addEventListener("click", function () { buy(u.id); });
+
+        art.appendChild(head); art.appendChild(desc); art.appendChild(dl); art.appendChild(btn);
+        list.appendChild(art);
+        u.levelEl = lvNum; u.btn = btn; u.el = art;
+      });
+    }
+
+    function renderUpgrades() {
+      UPS.forEach(function (u) {
+        var locked = upgradeLocked(u);
+        u.el.hidden = locked;
+        if (locked) return;
+        u.levelEl.textContent = levels[u.id].toLocaleString() + (mile(levels[u.id]) > 1 ? " (\u00d7" + mile(levels[u.id]) + ")" : "");
+        var vals = u.values();
+        for (var i = 0; i < vals.length; i++) u.dds[i].textContent = vals[i];
+        var n = buyAmount(u);
+        var totalCost = n > 0 ? costOfLevels(u, levels[u.id], n) : costs[u.id];
+        u.dds[vals.length].textContent = fmt(totalCost, 2) + " p" + (n > 1 ? " (\u00d7" + n + ")" : "");
+        if (n > 0) {
+          u.btn.disabled = false;
+          u.btn.textContent = "Buy \u00d7" + n.toLocaleString() + " for " + fmt(totalCost, 2) + " p";
+        } else {
+          u.btn.disabled = true;
+          u.btn.textContent = "Need " + fmt(costs[u.id].add(1), 2) + " p";
+        }
+      });
+    }
+
+    function anyAffordable() {
+      return UPS.some(function (u) { return !upgradeLocked(u) && canBuy(u.id); });
+    }
+
+    var buyModeButtons = Array.prototype.slice.call(document.querySelectorAll(".buy-mode-btn"));
+    function setBuyMode(mode) {
+      buyMode = mode === "max" ? "max" : parseInt(mode, 10);
+      buyModeButtons.forEach(function (b) {
+        b.classList.toggle("active", b.dataset.mode === String(mode));
+      });
+      renderUpgrades();
+    }
+    buyModeButtons.forEach(function (b) {
+      b.addEventListener("click", function () { setBuyMode(b.dataset.mode); });
+    });
+
+    // ---------- rendering ----------
+    var numberEl = $("number"), pEl = $("p"), rateEl = $("rate-n"), formulaEl = $("formula"), pRateEl = $("p-rate");
+
+    function formulaText(k) {
+      var base = addBonus > 0 ? "(p + " + fmtN(addBonus, 2) + ")" : "p";
+      var combinedK = k.mul(expBoost).mul(hyperBoost);
+      var showExp = levels.pro > 0 || levels.exp > 0 || levels.hyper > 0;
+      var core = base + "^" + (showExp ? "(" + base + " \u00d7 " + fmt(combinedK, 2) + ")" : base) + " \u2212 1";
+      return levels.mul > 0 ? fmtN(mulFactor, 2) + " \u00d7 (" + core + ")" : core;
+    }
+
+    function render() {
+      numberEl.textContent = fmt(number, 2);
+      pEl.innerHTML = "<span>p</span>" + fmt(p, 4);
+      rateEl.textContent = fmt(rate(p, number), 2);
+      pRateEl.textContent = fmtN(totalPGain(), 2);
+      formulaEl.textContent = formulaText(kBoost(number));
+      var open = drawer.classList.contains("open");
+      if (open) renderUpgrades();
+      tab.dataset.ready = (!open && anyAffordable()) ? "true" : "false";
+
+      var ascendBtn = $("ascend-btn");
+      ascendBtn.hidden = number.lt(ASCEND_THRESHOLD) || !!challenges.active;
+      updateAscendPreview();
+      $("open-heaven").hidden = !hasAscendedUnlocked;
+      $("open-auto").hidden = !ascensionUpgrades.automatic;
+      $("open-challenges").hidden = !ascensionUpgrades.heavenlyRestriction;
+      $("open-research").hidden = !ascensionUpgrades.research;
+
+      // r: hostile and shown while inside Challenge 3, otherwise the permanent negative r once unlocked
+      var rOn = rUnlocked() || chActive(3);
+      $("r-display").hidden = !rOn;
+      if (rOn) {
+        var rv = chActive(3) ? chR : -rVar;
+        $("r-value").textContent = (rv < 0 ? "\u2212" : "") + fmtN(Math.abs(rv), 4);
+      }
+      var rLine = rUnlocked() && !chActive(3);
+      $("r-rate-line").hidden = !rLine;
+      if (rLine) {
+        $("r-rate").textContent = fmtN(rGainRate(), 4);
+        $("r-pmult").textContent = rPMult().toFixed(2);
+        $("r-nmult").textContent = rNMult().toFixed(2);
+      }
+      $("s-display").hidden = !chActive(5);
+      if (chActive(5)) $("s-value").textContent = fmtN(sVar, 4);
+      renderChallengeBanner();
+
+      var qOn = ascensionUpgrades.ascendantVariable;
+      $("q-display").hidden = !qOn;
+      $("q-rate-line").hidden = !qOn;
+      if (qOn) {
+        $("q-value").textContent = fmt(q, 4);
+        $("q-rate").textContent = fmtN(qGainRate(), 4);
+        $("q-formula-mult").textContent = qFormulaBoost().toFixed(3);
+        $("q-pgain-mult").textContent = (qPBoost() * qSelfPBoost()).toFixed(2);
+      }
+    }
+
+    // ---------- upgrades drawer ----------
+    function setDrawer(open) {
+      drawer.classList.toggle("open", open);
+      scrim.classList.toggle("on", open);
+      tab.setAttribute("aria-expanded", String(open));
+      render();
+    }
+    tab.addEventListener("click", function () { setDrawer(!drawer.classList.contains("open")); });
+    scrim.addEventListener("click", function () { setDrawer(false); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && drawer.classList.contains("open") && !$("settings").open) setDrawer(false);
+    });
+    buildUpgrades();
+    setBuyMode(1);
+
+    // ---------- settings UI ----------
+    var dlg = $("settings");
+    var statusEl = $("status");
+    var codeEl = $("code");
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+    function updateSavedLabel() {
+      var el = $("saved-label");
+      if (!storageOK) el.textContent = "Saving is unavailable here. Use Export to keep your progress.";
+      else if (!lastSaved) el.textContent = "Not saved yet";
+      else el.textContent = "Last saved " + new Date(lastSaved).toLocaleTimeString();
+    }
+
+    function buildThemes() {
+      var box = $("theme-group");
+      THEMES.forEach(function (t) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "theme"; input.value = t[0];
+        input.checked = settings.theme === t[0];
+        var span = document.createElement("span");
+        span.textContent = t[1];
+        label.appendChild(input); label.appendChild(span);
+        box.appendChild(label);
+      });
+      box.addEventListener("change", function (e) {
+        settings.theme = e.target.value;
+        applyTheme(); saveSettings();
+        $("custom-theme").hidden = settings.theme !== "custom";
+        drawStatsGraphIfOpen();
+      });
+      buildCustomTheme();
+    }
+
+    function buildCustomTheme() {
+      var grid = $("color-grid");
+      CUSTOM_KEYS.forEach(function (k) {
+        var label = document.createElement("label");
+        var span = document.createElement("span"); span.textContent = k[1];
+        var input = document.createElement("input");
+        input.type = "color"; input.value = settings.custom[k[0]]; input.dataset.key = k[0];
+        input.addEventListener("input", function () {
+          settings.custom[k[0]] = input.value;
+          if (settings.theme === "custom") applyTheme();
+        });
+        input.addEventListener("change", function () { saveSettings(); drawStatsGraphIfOpen(); });
+        label.appendChild(span); label.appendChild(input);
+        grid.appendChild(label);
+      });
+      $("custom-reset").addEventListener("click", function () {
+        for (var k in CUSTOM_DEFAULT) settings.custom[k] = CUSTOM_DEFAULT[k];
+        Array.prototype.forEach.call(grid.querySelectorAll("input"), function (i) { i.value = settings.custom[i.dataset.key]; });
+        if (settings.theme === "custom") applyTheme();
+        saveSettings(); drawStatsGraphIfOpen();
+      });
+      $("custom-theme").hidden = settings.theme !== "custom";
+    }
+
+    function drawStatsGraphIfOpen() { if ($("stats").open) drawStatsGraph(); }
+
+    function buildNotations() {
+      var box = $("notation-group");
+      var sample = new OmegaNum("4.5678e34");
+      NOTATIONS.forEach(function (n) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "notation"; input.value = n[0];
+        input.checked = settings.notation === n[0];
+        var body = document.createElement("span");
+        body.className = "opt-body";
+        var name = document.createElement("span");
+        name.className = "opt-name"; name.textContent = n[1];
+        var ex = document.createElement("span");
+        ex.className = "opt-sample"; ex.textContent = format(sample, 2, n[0]);
+        body.appendChild(name); body.appendChild(ex);
+        label.appendChild(input); label.appendChild(body);
+        box.appendChild(label);
+      });
+      box.addEventListener("change", function (e) {
+        settings.notation = e.target.value;
+        saveSettings(); render();
+      });
+    }
+
+    function buildAutosave() {
+      var sel = $("autosave");
+      AUTOSAVES.forEach(function (a) {
+        var o = document.createElement("option");
+        o.value = String(a[0]); o.textContent = a[1];
+        if (settings.autosave === a[0]) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function () {
+        settings.autosave = parseInt(sel.value, 10);
+        saveSettings();
+        setStatus(settings.autosave ? "Autosave set." : "Autosave is off. Use Save now to keep progress.");
+      });
+    }
+
+    buildThemes(); buildNotations(); buildAutosave(); updateSavedLabel();
+
+    $("open-settings").addEventListener("click", function () {
+      setStatus(""); setDevStatus(""); updateSavedLabel(); fillDev();
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    });
+    $("close-settings").addEventListener("click", function () {
+      if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+    });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
+
+    $("save-now").addEventListener("click", function () {
+      setStatus(save() ? "Saved." : "Couldn't save in this browser. Use Export instead.");
+    });
+
+    function legacyCopy() { try { return document.execCommand("copy"); } catch (e) { return false; } }
+    function copyText(t) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(t).then(function () { return true; }, function () { return legacyCopy(); });
+      }
+      return Promise.resolve(legacyCopy());
+    }
+
+    $("export").addEventListener("click", function () {
+      var code = btoa(JSON.stringify(snapshot()));
+      codeEl.value = code;
+      codeEl.focus(); codeEl.select();
+      copyText(code).then(function (ok) {
+        setStatus(ok ? "Save code copied." : "Save code ready. Copy it from the box.");
+      });
+    });
+
+    $("import").addEventListener("click", function () {
+      var raw = codeEl.value.replace(/\s+/g, "");
+      if (!raw) { setStatus("Paste a save code first."); return; }
+      var snap = null;
+      try { snap = parseSnapshot(JSON.parse(atob(raw))); } catch (e) {}
+      if (!snap) { setStatus("That save code isn't valid."); return; }
+      applySnapshot(snap);
+      save(); render();
+      setStatus("Save imported.");
+    });
+
+    var wipeBtn = $("wipe"), wipeTimer = null;
+    function disarm() {
+      clearTimeout(wipeTimer);
+      wipeBtn.classList.remove("armed");
+      wipeBtn.textContent = "Restart from zero";
+    }
+    wipeBtn.addEventListener("click", function () {
+      if (!wipeBtn.classList.contains("armed")) {
+        wipeBtn.classList.add("armed");
+        wipeBtn.textContent = "Tap again to erase progress";
+        wipeTimer = setTimeout(disarm, 3000);
+        return;
+      }
+      disarm();
+      number = new OmegaNum(0);
+      p = new OmegaNum(1);
+      levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0, pp: 0 };
+      maxNumber = new OmegaNum(0);
+      heavenlyNumber = new OmegaNum(0);
+      ascensionPoints = new OmegaNum(0);
+      q = new OmegaNum(0);
+      hasAscendedUnlocked = false;
+      totalAscensions = 0;
+      ascensionUpgrades = { heavenlyGale: false, heavenlyStrikedown: false, kinetic: false, ascendantVariable: false, perfection: false, automatic: false, duplication: false, heavenlyRestriction: false, research: false };
+      $("heaven").hidden = true;
+      autoCfg = defaultAutoCfg();
+      wallSince = 0;
+      challenges = { done: [0, 0, 0, 0, 0], active: 0 };
+      chTime = 0; chR = C3_STATIC_R; rAppeared = false; chAleph = 0; sVar = 0; sBuff = 0; rVar = 1; aleph = 0;
+      matter = 0; matterUnlocked = false;
+      $("research").hidden = true;
+      $("challenges").hidden = true;
+      history = [];
+      updateDerived();
+      save(); render();
+      setStatus("Progress erased. Starting over.");
+    });
+
+    // ---------- stats panel ----------
+    var history = []; // in-memory samples: {t, v: log10(number)}
+    var HISTORY_MAX = 400;
+
+    function recordHistory() {
+      var v = number.gt(0) ? number.log10().toNumber() : 0;
+      if (!isFinite(v)) return;
+      history.push({ t: Date.now(), v: v });
+      if (history.length > HISTORY_MAX) {
+        var compact = [];
+        for (var i = 0; i < history.length; i++) {
+          if (i % 2 === 0 || i === history.length - 1) compact.push(history[i]);
+        }
+        history = compact;
+      }
+    }
+
+    var LENGTH_UNITS = [
+      ["Planck lengths", 1.616255e-35], ["yoctometers", 1e-24], ["attometers", 1e-18],
+      ["femtometers", 1e-15], ["picometers", 1e-12], ["nanometers", 1e-9],
+      ["micrometers", 1e-6], ["millimeters", 1e-3], ["centimeters", 1e-2],
+      ["meters", 1], ["kilometers", 1e3], ["megameters", 1e6], ["gigameters", 1e9],
+      ["AUs", 1.495978707e11], ["light years", 9.4607e15], ["parsecs", 3.0857e16],
+      ["gigaparsecs", 3.0857e25]
+    ];
+    var ATOM_DIAMETER_M = 3e-10; // rough atomic diameter, for a "perfectly compressed" cube of atoms
+
+    function buildLengthUnits() {
+      var sel = $("stats-unit");
+      LENGTH_UNITS.forEach(function (u, i) {
+        var o = document.createElement("option");
+        o.value = String(i);
+        o.textContent = u[0];
+        if (u[0] === "meters") o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", updateStatsLength);
+    }
+    buildLengthUnits();
+
+    function updateStatsLength() {
+      var unit = LENGTH_UNITS[parseInt($("stats-unit").value, 10)];
+      var edge = number.gt(0) ? number.pow(1 / 3).mul(ATOM_DIAMETER_M) : new OmegaNum(0);
+      $("stats-length-value").textContent = fmt(edge.div(unit[1]), 3);
+      $("stats-length-unit").textContent = unit[0];
+    }
+
+    function drawStatsGraph() {
+      var canvas = $("stats-canvas");
+      var ctx = canvas.getContext("2d");
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      var rangeSec = parseInt($("stats-range").value, 10);
+      var now = Date.now();
+      var pts = history.filter(function (pt) { return rangeSec === 0 || (now - pt.t) <= rangeSec * 1000; });
+      var style = getComputedStyle(document.documentElement);
+      if (pts.length < 2) {
+        ctx.fillStyle = style.getPropertyValue("--muted").trim() || "#6f5d86";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("Not enough data yet \u2014 keep this open a moment.", 10, h / 2);
+        return;
+      }
+      var minV = pts[0].v, maxV = pts[0].v;
+      pts.forEach(function (pt) { if (pt.v < minV) minV = pt.v; if (pt.v > maxV) maxV = pt.v; });
+      if (maxV === minV) maxV = minV + 1;
+      var minT = pts[0].t, maxT = pts[pts.length - 1].t;
+      var spanT = (maxT - minT) || 1;
+      function x(t) { return 10 + (t - minT) / spanT * (w - 20); }
+      function y(v) { return h - 10 - (v - minV) / (maxV - minV) * (h - 20); }
+      ctx.strokeStyle = style.getPropertyValue("--accent").trim() || "#b4236e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      pts.forEach(function (pt, i) {
+        var px = x(pt.t), py = y(pt.v);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+
+    function updateStatsPanel() {
+      $("stats-record").textContent = fmt(maxNumber, 2);
+      var chTotal = challenges.done.reduce(function (a, b) { return a + b; }, 0);
+      $("stats-ascensions").textContent = "Times ascended: " + totalAscensions.toLocaleString() +
+        (ascensionUpgrades.heavenlyRestriction ? " \u00b7 Challenges completed: " + chTotal + "/" + CH_MAXES.reduce(function (a, b) { return a + b; }, 0) : "");
+      updateStatsLength();
+      drawStatsGraph();
+    }
+
+    var statsDlg = $("stats");
+    $("open-stats").addEventListener("click", function () {
+      updateStatsPanel();
+      if (statsDlg.showModal) statsDlg.showModal(); else statsDlg.setAttribute("open", "");
+    });
+    $("close-stats").addEventListener("click", function () {
+      if (statsDlg.close) statsDlg.close(); else statsDlg.removeAttribute("open");
+    });
+    statsDlg.addEventListener("click", function (e) { if (e.target === statsDlg) statsDlg.close(); });
+    $("stats-range").addEventListener("change", drawStatsGraph);
+
+    // ---------- ascension / the heavenly number ----------
+    var heavenEl = $("heaven");
+
+    // ---------- the ascension upgrade tree (drag to pan, tap a node for details) ----------
+    var TREE_POS = {                       // node centres, relative to the top of the tree
+      heavenlyGale: [0, 0],
+      heavenlyStrikedown: [-125, 135], kinetic: [125, 135],
+      ascendantVariable: [0, 270],
+      perfection: [0, 405],
+      automatic: [-125, 540], duplication: [125, 675],
+      heavenlyRestriction: [0, 810],
+      research: [0, 945]
+    };
+    var TREE_W = 190, TREE_H = 82, TREE_OX = 400, TREE_OY = 70; // node size, and where (0, 0) sits inside the canvas
+    var treeVp = $("tree-viewport"), treeCanvas = $("tree-canvas"), treeSvg = $("tree-lines");
+    var treeNodes = {}, treeLines = [], treeSel = null, panX = 0, panY = 0, treeDrag = null;
+
+    function reqList(u) { return u.requires ? (Array.isArray(u.requires) ? u.requires : [u.requires]) : []; }
+    function reqMet(u) { return reqList(u).every(function (id) { return ascensionUpgrades[id]; }); }
+    function ascById(id) { return ASCENSION_UPS.filter(function (u) { return u.id === id; })[0]; }
+
+    function canBuyAscension(u) { return !ascensionUpgrades[u.id] && reqMet(u) && ascensionPoints.gte(u.cost); }
+
+    function buyAscension(u) {
+      if (!canBuyAscension(u)) return;
+      ascensionPoints = ascensionPoints.sub(u.cost);
+      ascensionUpgrades[u.id] = true;
+      if (u.id === "ascendantVariable") q = new OmegaNum(1);
+      if (settings.autosave > 0) save();
+      renderHeaven(); render();
+    }
+
+    function buildTree() {
+      var NS = "http://www.w3.org/2000/svg";
+      ASCENSION_UPS.forEach(function (u) {
+        var pos = TREE_POS[u.id] || [0, 0];
+        var btn = document.createElement("button");
+        btn.type = "button"; btn.className = "tnode"; btn.dataset.id = u.id;
+        btn.style.left = (TREE_OX + pos[0] - TREE_W / 2) + "px";
+        btn.style.top = (TREE_OY + pos[1] - TREE_H / 2) + "px";
+        var nm = document.createElement("span"); nm.className = "tn-name"; nm.textContent = u.name;
+        var sub = document.createElement("span"); sub.className = "tn-sub";
+        btn.appendChild(nm); btn.appendChild(sub);
+        btn.addEventListener("click", function (e) { if (e.detail === 0) selectTree(u.id); }); // keyboard; pointers are handled below
+        treeCanvas.appendChild(btn);
+        treeNodes[u.id] = { el: btn, sub: sub };
+      });
+      ASCENSION_UPS.forEach(function (u) {
+        reqList(u).forEach(function (rid) {
+          var a = TREE_POS[rid], c = TREE_POS[u.id];
+          var x1 = TREE_OX + a[0], y1 = TREE_OY + a[1] + TREE_H / 2, x2 = TREE_OX + c[0], y2 = TREE_OY + c[1] - TREE_H / 2, my = (y1 + y2) / 2;
+          var path = document.createElementNS(NS, "path");
+          path.setAttribute("d", "M" + x1 + " " + y1 + " C" + x1 + " " + my + " " + x2 + " " + my + " " + x2 + " " + y2);
+          treeSvg.appendChild(path);
+          treeLines.push({ el: path, from: rid, to: u.id });
+        });
+      });
+    }
+
+    function applyPan() { treeCanvas.style.transform = "translate(" + panX + "px," + panY + "px)"; }
+    function clampPan() {
+      var vw = treeVp.clientWidth, vh = treeVp.clientHeight;
+      var minX = TREE_OX - 125 - TREE_W / 2, maxX = TREE_OX + 125 + TREE_W / 2, minY = TREE_OY - TREE_H / 2, maxY = TREE_OY + 945 + TREE_H / 2;
+      var xa = vw - maxX - 80, xb = 80 - minX, ya = vh - maxY - 80, yb = 80 - minY;
+      panX = Math.max(Math.min(xa, xb), Math.min(Math.max(xa, xb), panX));
+      panY = Math.max(Math.min(ya, yb), Math.min(Math.max(ya, yb), panY));
+    }
+    function centerTree() {
+      panX = treeVp.clientWidth / 2 - TREE_OX;
+      panY = 24 - (TREE_OY - TREE_H / 2);
+      clampPan(); applyPan();
+    }
+
+    function selectTree(id) { treeSel = id; renderAscensionUpgrades(); }
+
+    // Opening the screen: centre the tree and pick something sensible to show.
+    function initTreeView() {
+      centerTree();
+      if (!treeSel) {
+        var next = ASCENSION_UPS.filter(function (u) { return !ascensionUpgrades[u.id] && reqMet(u); })[0];
+        treeSel = (next || ASCENSION_UPS[ASCENSION_UPS.length - 1]).id;
+      }
+      renderAscensionUpgrades();
+    }
+
+    treeVp.addEventListener("pointerdown", function (e) {
+      if (e.button) return;
+      if (e.target.closest && e.target.closest("#tree-recenter")) return;
+      treeDrag = { x: e.clientX, y: e.clientY, px: panX, py: panY, moved: false };
+      try { treeVp.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    treeVp.addEventListener("pointermove", function (e) {
+      if (!treeDrag) return;
+      var dx = e.clientX - treeDrag.x, dy = e.clientY - treeDrag.y;
+      if (!treeDrag.moved && Math.abs(dx) + Math.abs(dy) > 6) { treeDrag.moved = true; treeVp.classList.add("dragging"); }
+      if (treeDrag.moved) { panX = treeDrag.px + dx; panY = treeDrag.py + dy; clampPan(); applyPan(); }
+    });
+    function endTreeDrag(e, cancelled) {
+      if (!treeDrag) return;
+      var wasTap = !treeDrag.moved && !cancelled;
+      treeDrag = null;
+      treeVp.classList.remove("dragging");
+      if (wasTap) {
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var node = el && el.closest ? el.closest(".tnode") : null;
+        if (node) selectTree(node.dataset.id);
+      }
+    }
+    treeVp.addEventListener("pointerup", function (e) { endTreeDrag(e, false); });
+    treeVp.addEventListener("pointercancel", function (e) { endTreeDrag(e, true); });
+    treeVp.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      panX -= e.deltaX; panY -= e.deltaY; clampPan(); applyPan();
+    }, { passive: false });
+    $("tree-recenter").addEventListener("click", centerTree);
+    $("td-buy").addEventListener("click", function () { var u = treeSel && ascById(treeSel); if (u) buyAscension(u); });
+
+    function renderTreeDetail() {
+      var u = treeSel ? ascById(treeSel) : null;
+      if (!u) return;
+      $("td-name").textContent = u.name;
+      $("td-desc").textContent = u.desc;
+      $("td-cost").textContent = fmt(new OmegaNum(u.cost), 0) + " AP";
+      var reqs = reqList(u);
+      $("td-req").textContent = reqs.length ? reqs.map(function (id) { return (ascensionUpgrades[id] ? "\u2713 " : "\u2717 ") + ascById(id).name; }).join(", ") : "None";
+      var btn = $("td-buy");
+      if (ascensionUpgrades[u.id]) { btn.disabled = true; btn.textContent = "Owned"; }
+      else if (!reqMet(u)) { btn.disabled = true; btn.textContent = "Locked"; }
+      else if (ascensionPoints.lt(u.cost)) { btn.disabled = true; btn.textContent = "Need " + fmt(new OmegaNum(u.cost), 0) + " AP"; }
+      else { btn.disabled = false; btn.textContent = "Buy for " + fmt(new OmegaNum(u.cost), 0) + " AP"; }
+    }
+
+    function renderAscensionUpgrades() {
+      ASCENSION_UPS.forEach(function (u) {
+        var n = treeNodes[u.id], owned = ascensionUpgrades[u.id], open = reqMet(u);
+        n.el.classList.toggle("owned", !!owned);
+        n.el.classList.toggle("locked", !owned && !open);
+        n.el.classList.toggle("avail", !owned && open && ascensionPoints.gte(u.cost));
+        n.el.classList.toggle("selected", treeSel === u.id);
+        n.sub.textContent = owned ? "Owned \u2713" : (open ? fmt(new OmegaNum(u.cost), 0) + " AP" : "Locked");
+      });
+      treeLines.forEach(function (l) {
+        var f = ascensionUpgrades[l.from], t = ascensionUpgrades[l.to];
+        l.el.setAttribute("class", f && t ? "on" : (f ? "next" : ""));
+      });
+      renderTreeDetail();
+    }
+
+    buildTree();
+
+    // Numbers and boosts only (cheap, safe to refresh while the overlay is open).
+    function renderHeavenStats() {
+      $("heaven-number").textContent = fmt(heavenlyNumber, 0);
+      $("hb-pmult").textContent = heavenlyPMult().toFixed(2);
+      $("hb-nexp").textContent = heavenlyNExp().toFixed(2);
+      $("hb-slight").textContent = heavenlySlightBoost().toFixed(3);
+      var autoRate = autoHeavenRate();
+      $("hb-auto").hidden = !(autoRate > 0);
+      if (autoRate > 0) $("hb-auto-rate").textContent = "+" + fmtN(autoRate, 3);
+      var qOn = ascensionUpgrades.ascendantVariable;
+      $("hb-q").hidden = !qOn;
+      if (qOn) $("hb-q-mult").textContent = heavenlyQMult().toFixed(2);
+      var aOn = alephUnlocked();
+      $("aleph-card").hidden = !aOn;
+      if (aOn) {
+        $("aleph-value").textContent = fmtN(aleph, 4);
+        $("aleph-rate").textContent = fmtN(alephGainRate(), 4);
+        $("aleph-hn").textContent = alephHeavenMult().toFixed(2);
+        $("aleph-ap").textContent = alephApMult().toFixed(2);
+        $("aleph-up").textContent = alephUpMult().toFixed(2);
+      }
+      $("heaven-click").textContent = aOn ? "+" + fmtN(alephHeavenMult(), 2) : "+1";
+      var apText = "Ascension points: " + fmt(ascensionPoints, 0);
+      if (number.gte(ASCEND_THRESHOLD) && !challenges.active) apText += " (+" + fmt(new OmegaNum(apPerAscension()), 0) + " on ascend)";
+      $("heaven-ap-1").textContent = apText;
+      $("heaven-ap-2").textContent = apText;
+    }
+
+    function renderHeaven() {
+      renderHeavenStats();
+      renderAscensionUpgrades();
+    }
+
+    var ascendBtnEl = $("ascend-btn"), ascendTimer = null;
+
+    // Live preview of how much AP an ascension gives (button label + a hint line under it).
+    var ascendInfoEl = $("ascend-info"), lastAscendPreview = 0;
+    function updateAscendPreview() {
+      var t = performance.now();
+      if (t - lastAscendPreview < 200) return;
+      lastAscendPreview = t;
+      var canAscend = number.gte(ASCEND_THRESHOLD);
+      if (challenges.active || !(canAscend || hasAscendedUnlocked)) { ascendInfoEl.hidden = true; return; }
+      var gain = apPerAscension();
+      var gainTxt = fmt(new OmegaNum(gain), 0);
+      var text;
+      if (!canAscend) {
+        text = "Reach n \u2265 " + fmt(ASCEND_THRESHOLD, 2) + " to ascend for +" + gainTxt + " AP.";
+      } else {
+        if (!ascendBtnEl.classList.contains("armed")) ascendBtnEl.textContent = "ASCEND (+" + gainTxt + " AP)";
+        text = "Ascending now gives +" + gainTxt + " AP.";
+        if (brokenInfinity() && gain < 1e12) text += " +" + fmt(new OmegaNum(gain + 1), 0) + " AP at n \u2265 " + fmt(nForAp(gain + 1), 2) + ".";
+      }
+      ascendInfoEl.textContent = text;
+      ascendInfoEl.hidden = false;
+    }
+    function disarmAscend() {
+      clearTimeout(ascendTimer); ascendTimer = null;
+      ascendBtnEl.classList.remove("armed");
+      ascendBtnEl.textContent = "ASCEND";
+    }
+
+    // Performs an ascension (used by the button and by auto-ascension).
+    function doAscend() {
+      ascensionPoints = ascensionPoints.add(apPerAscension());
+      totalAscensions += 1;
+      hasAscendedUnlocked = true;
+      number = new OmegaNum(0);
+      p = new OmegaNum(1);
+      levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0, pp: 0 };
+      wallSince = 0;
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+    }
+    ascendBtnEl.addEventListener("click", function () {
+      if (!ascendBtnEl.classList.contains("armed")) {
+        ascendBtnEl.classList.add("armed");
+        ascendBtnEl.textContent = "Tap again to ascend (+" + fmt(new OmegaNum(apPerAscension()), 0) + " AP)";
+        ascendTimer = setTimeout(disarmAscend, 3000);
+        return;
+      }
+      disarmAscend();
+      doAscend();
+    });
+    $("open-heaven").addEventListener("click", function () {
+      renderHeaven();
+      heavenEl.hidden = false;
+      initTreeView();
+    });
+    $("heaven-back").addEventListener("click", function () {
+      heavenEl.hidden = true;
+    });
+    $("heaven-click").addEventListener("click", function () {
+      heavenlyNumber = heavenlyNumber.add(alephHeavenMult());
+      if (settings.autosave > 0) save();
+      renderHeaven(); render();
+    });
+
+    // ---------- automation (Automatic ascension upgrade) ----------
+    var autoDlg = $("automation");
+    var lastAutoBuy = 0;
+
+    // Buys every level you can afford for free: p is never spent.
+    function autoBuyTick() {
+      if (!ascensionUpgrades.automatic || !autoCfg.buy) return;
+      var changed = false;
+      UPS.forEach(function (u) {
+        if (upgradeLocked(u)) return;
+        if (!autoCfg.ids[u.id]) return;
+        var n = maxAffordable(u);
+        if (n > 0) { levels[u.id] += n; changed = true; }
+      });
+      if (changed) updateDerived();
+    }
+
+    // Is the current number a good moment to ascend? Before infinity is broken that's simply the wall;
+    // afterwards it follows the n and AP targets from the Automation tab (either one is enough).
+    function autoAscendReady() {
+      if (!number.gte(ASCEND_THRESHOLD)) return false;
+      if (!brokenInfinity()) return true;
+      var hasN = !!autoCfg.nAtNum, hasAp = autoCfg.apAt > 0;
+      if (!hasN && !hasAp) return true;
+      return (hasN && number.gte(autoCfg.nAtNum)) || (hasAp && apPerAscension() >= autoCfg.apAt);
+    }
+
+    // Ascends once the target has held for the configured delay.
+    function autoAscendTick(now) {
+      if (!ascensionUpgrades.automatic || !autoCfg.ascend || challenges.active || !autoAscendReady()) { wallSince = 0; return; }
+      if (!wallSince) wallSince = now;
+      if (now - wallSince >= autoCfg.delay * 1000) {
+        disarmAscend();
+        var gained = apPerAscension();
+        doAscend();
+        $("auto-note").textContent = "Auto-ascended at " + new Date().toLocaleTimeString() + " (+" + fmt(new OmegaNum(gained), 0) + " AP).";
+      }
+    }
+
+    function autoTick(now) {
+      if (now - lastAutoBuy >= 250) { lastAutoBuy = now; autoBuyTick(); }
+      autoAscendTick(now);
+    }
+
+    function autoSave() { if (settings.autosave > 0) save(); }
+
+    function buildAutomation() {
+      var list = $("auto-buy-list");
+      UPS.forEach(function (u) {
+        var label = document.createElement("label");
+        label.className = "toggle";
+        var input = document.createElement("input");
+        input.type = "checkbox"; input.dataset.id = u.id;
+        var span = document.createElement("span");
+        span.textContent = u.name;
+        label.appendChild(input); label.appendChild(span);
+        list.appendChild(label);
+        input.addEventListener("change", function () { autoCfg.ids[u.id] = input.checked; autoSave(); });
+      });
+      var sel = $("auto-asc-delay");
+      AUTO_DELAYS.forEach(function (d) {
+        var o = document.createElement("option");
+        o.value = String(d[0]); o.textContent = d[1];
+        sel.appendChild(o);
+      });
+      $("auto-buy-on").addEventListener("change", function (e) { autoCfg.buy = e.target.checked; autoSave(); });
+      $("auto-asc-on").addEventListener("change", function (e) { autoCfg.ascend = e.target.checked; wallSince = 0; autoSave(); });
+      sel.addEventListener("change", function () { autoCfg.delay = parseInt(sel.value, 10); wallSince = 0; autoSave(); });
+      $("auto-heaven-on").addEventListener("change", function (e) { autoCfg.heaven = e.target.checked; autoSave(); updateAutoInfo(); });
+      $("auto-n").addEventListener("input", function (e) {
+        autoCfg.nAt = e.target.value.trim(); autoCfg.nAtNum = parseNAt(autoCfg.nAt); wallSince = 0; autoSave(); updateAutoInfo();
+      });
+      $("auto-ap").addEventListener("input", function (e) {
+        var v = parseInt(e.target.value.replace(/[^0-9]/g, ""), 10);
+        autoCfg.apAt = isFinite(v) && v > 0 ? v : 0; wallSince = 0; autoSave(); updateAutoInfo();
+      });
+    }
+
+    function fillAutomation() {
+      $("auto-buy-on").checked = autoCfg.buy;
+      $("auto-asc-on").checked = autoCfg.ascend;
+      $("auto-asc-delay").value = String(autoCfg.delay);
+      $("auto-heaven-on").checked = autoCfg.heaven;
+      $("auto-n").value = autoCfg.nAt;
+      $("auto-ap").value = autoCfg.apAt > 0 ? String(autoCfg.apAt) : "";
+      Array.prototype.forEach.call($("auto-buy-list").querySelectorAll("input"), function (i) {
+        i.checked = !!autoCfg.ids[i.dataset.id];
+      });
+      updateAutoInfo();
+    }
+
+    function updateAutoInfo() {
+      $("auto-heaven-rate").textContent = fmtN(autoHeavenRate(), 3);
+      var broke = brokenInfinity();
+      $("auto-break").hidden = !broke;
+      if (!broke) return;
+      var hint;
+      if (autoCfg.apAt > 0) hint = "To gain " + autoCfg.apAt + " AP you need n \u2265 " + fmt(nForAp(autoCfg.apAt), 3) + ".";
+      else hint = "Type an AP amount to see how much n it takes.";
+      hint += " Right now an ascension would give +" + fmt(new OmegaNum(apPerAscension()), 0) + " AP.";
+      $("auto-ap-hint").textContent = hint;
+    }
+
+    buildAutomation();
+    $("open-auto").addEventListener("click", function () {
+      $("auto-note").textContent = "";
+      fillAutomation();
+      if (autoDlg.showModal) autoDlg.showModal(); else autoDlg.setAttribute("open", "");
+    });
+    $("close-automation").addEventListener("click", function () {
+      if (autoDlg.close) autoDlg.close(); else autoDlg.removeAttribute("open");
+    });
+    autoDlg.addEventListener("click", function (e) { if (e.target === autoDlg) autoDlg.close(); });
+
+    // ---------- news ticker ----------
+    var tickerEl = $("ticker"), tickerMsg = $("ticker-msg");
+    var owns = function (id) { return function () { return !!ascensionUpgrades[id]; }; };
+    var NEWS = [
+      { t: "Local number wakes up, sees p, and decides to raise itself to the power of p anyway." },
+      { t: "Breaking: p is once again the exponent of its own base. Sources say it saw this coming." },
+      { t: "Scientists confirm 1 to the power of 1 is still 1, and are not taking further questions." },
+      { t: "Study finds 87% of all numbers are just trying their best." },
+      { t: "Economists baffled as player spends p to make more p. 'It's fine,' says p." },
+      { t: "Multiplier called 'a lot of effort for \u00d71.1' by an unnamed source." },
+      { t: "Additive announces it will add +0.2 to anything, anywhere, no questions asked." },
+      { t: "Propulsion unavailable for comment, currently busy exceeding the speed of the exponent." },
+      { t: "Exponent upgrade sues Additive for 'thinking small.'" },
+      { t: "Weather report: 100% chance of scientific notation, scattered abbreviations by evening." },
+      { t: "Player refreshes the page to check their number. Number politely continues to go up." },
+      { t: "Man idles for six hours, returns to a slightly bigger number, is thrilled." },
+      { t: "Breaking: the wall at 2^1024 has been declared 'very wall-like' by inspectors." },
+      { t: "Mathematicians agree that infinity is not a number. Infinity respectfully disagrees." },
+      { t: "New study: the 'e' in scientific notation stands for 'enough already.'" },
+      { t: "Player asked why they keep clicking. 'It's a hobby,' they say, clicking." },
+      { t: "Autosave reports it has saved your game 4,000 times and feels underappreciated." },
+      { t: "Dark mode lobby insists light mode 'was just a phase.'" },
+      { t: "Number formatting committee still arguing over whether K stands for 'kilo' or 'okay.'" },
+      { t: "Local atom concerned about being compressed into a cube 'for science.'" },
+      { t: "Light years fall out of fashion; parsecs said to be 'very in' this season." },
+      { t: "Study: exponents are just multiplication that started going to the gym." },
+      { t: "Developer mode remains a mystery to everyone except developers, and even they aren't sure." },
+      { t: "Local bird lands on p, refuses to elaborate." },
+      { t: "New ticker item rejected for being 'too on the nose': 'Number go up.'" },
+      { t: "Breaking: log10 wins award for 'Most Humbling Function.'" },
+      { t: "Player tries to explain the game to a friend. Both leave with more questions than answers." },
+      { t: "Tomorrow's headline: today's number, but bigger." },
+      { t: "OmegaNum.js reportedly 'unbothered by the size of your number.'" },
+      { t: "Scientists discover 1e308 is 'a lot,' while 1e309 is 'also a lot, but with more paperwork.'" },
+      { t: "Number theorists divided on whether 0.001 p is 'a little' or 'a lot' of p." },
+      { t: "Sponsored: buy more p! (Terms and conditions: you need p to buy p.)" },
+      { t: "This ticker is powered entirely by setTimeout and mild optimism." },
+      { t: function () { return "Breaking: your number is currently " + fmt(number, 2) + ". Analysts confirm it is, in fact, a number."; } },
+      { t: function () { return "Sources close to p (" + fmt(p, 4) + ") say it 'has never felt more exponentiated.'"; } },
+      { t: "Player reaches a new personal best. The previous personal best says it's 'fine with it.'" },
+      { t: "Study: 9 out of 10 idle gamers say 'just one more upgrade.' The tenth is still buying it." },
+      { t: "In other news, in other news, in other news..." },
+      { t: "Hyper Tower now so tall that nobody remembers what the ground looked like.", req: owns("perfection") },
+      { t: "Heavenly Gale blows over three old numbers and a garden gnome.", req: owns("heavenlyGale") },
+      { t: "Strikedown reportedly struck down. Details are sketchy, but it definitely struck.", req: owns("heavenlyGale") },
+      { t: "Kinetic is now in motion, but only logarithmically.", req: owns("heavenlyStrikedown") },
+      { t: "Report: q is 'p's cooler younger sibling' and 'not sure how to feel about it.'", req: owns("kinetic") },
+      { t: "Perfection declared 'not quite perfect' by its own upgrade description.", req: owns("ascendantVariable") },
+      { t: "Automatic upgrades continue buying things while you sleep. Investigators suspect a shopping problem.", req: owns("perfection") },
+      { t: "Duplication doubles its coverage of Duplication. Duplication doubles its coverage of Duplication.", req: owns("automatic") },
+      { t: "Ascension points now accepted at 3 out of 5 heavens.", req: function () { return hasAscendedUnlocked; } },
+      { t: "Rumor: the Heavenly Number is just a normal number that took a really good vacation.", req: function () { return hasAscendedUnlocked; } },
+      { t: "Breaking: the number you are looking for is currently on screen." },
+      { t: "Experts recommend taking a break from the game. The number will still be here. Probably larger." }
+    ];
+
+    var lastNews = -1, tickerAnim = null, tickerTimer = null;
+    var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    function pickNews() {
+      var pool = [];
+      for (var i = 0; i < NEWS.length; i++) {
+        if (i === lastNews) continue;
+        if (NEWS[i].req && !NEWS[i].req()) continue;
+        pool.push(i);
+      }
+      var idx = pool[Math.floor(Math.random() * pool.length)];
+      lastNews = idx;
+      var t = NEWS[idx].t;
+      return typeof t === "function" ? t() : t;
+    }
+
+    function nextNews() {
+      if (!settings.ticker) return;
+      tickerMsg.textContent = pickNews();
+      if (tickerAnim) { tickerAnim.onfinish = null; tickerAnim.cancel(); tickerAnim = null; }
+      clearTimeout(tickerTimer);
+      if (reduceMotion || !tickerMsg.animate) {
+        tickerMsg.classList.add("static");
+        tickerTimer = setTimeout(nextNews, 9000);
+        return;
+      }
+      tickerMsg.classList.remove("static");
+      var cw = tickerEl.clientWidth, w = tickerMsg.offsetWidth;
+      tickerAnim = tickerMsg.animate(
+        [{ transform: "translateX(" + cw + "px)" }, { transform: "translateX(" + (-w) + "px)" }],
+        { duration: (cw + w) / 95 * 1000, easing: "linear", fill: "forwards" }
+      );
+      tickerAnim.onfinish = nextNews;
+    }
+
+    function applyTicker() {
+      tickerEl.hidden = !settings.ticker;
+      document.body.classList.toggle("no-ticker", !settings.ticker);
+      if (settings.ticker) nextNews();
+      else {
+        if (tickerAnim) { tickerAnim.onfinish = null; tickerAnim.cancel(); tickerAnim = null; }
+        clearTimeout(tickerTimer);
+      }
+    }
+
+    var tickerToggle = $("ticker-toggle");
+    tickerToggle.checked = settings.ticker;
+    tickerToggle.addEventListener("change", function () {
+      settings.ticker = tickerToggle.checked;
+      saveSettings(); applyTicker();
+    });
+
+    // ---------- toast ----------
+    var toastEl = $("toast"), toastTimer = null;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.remove("on"); }, 3400);
+    }
+
+    // ---------- challenges ----------
+    var CH_INFO = [
+      {
+        name: "Withering",
+        rule: "p gain is cut in half, and the p in the formula is raised to ^0.8.",
+        reward: "Each completion adds a permanent exponent to the p in the formula: ^(1 + 0.03 \u00d7 completions).",
+        now: function () { return "^" + (1 + C1_REWARD_EXP * chDone(1)).toFixed(2) + " on p"; }
+      },
+      {
+        name: "Decay",
+        rule: "Your number gain is divided by 1.01 every second, compounding for as long as the challenge lasts.",
+        reward: "Number gain gets a static \u00d71.1 per completion, and q gain is multiplied by (1 + 0.5 \u00d7 completions).",
+        now: function () { return "n gain \u00d7" + c2NMult().toFixed(2) + ", q gain \u00d7" + c2QMult().toFixed(2); }
+      },
+      {
+        name: "The variable r",
+        rule: "A variable r sits at a static 2 the whole time you're in the challenge, clamping p gain to 1/2 and dividing it by 2 on top of that. Each second it has a 1/1000 chance of appearing \u2014 when it does, click it to defeat it, which raises your number to the ^0.75 power as the cost.",
+        reward: "Unlocks r as a permanent variable that is always negative. It boosts p gain and n gain, and grows over time, both scaled by your completions.",
+        now: function () { return rUnlocked() ? "p gain \u00d7" + rPMult().toFixed(2) + ", n gain \u00d7" + rNMult().toFixed(2) : "Not unlocked"; }
+      },
+      {
+        name: "Aleph",
+        rule: "Aleph feeds on your number. p gain and n gain are divided by 10 \u00d7 Aleph (never less than 1), and q is clamped so it can't boost p or n.",
+        reward: "Unlocks Aleph in Heaven: it starts at 0 and grows 0.0001 per second per completion. It boosts the Heavenly Number, AP gain and every upgrade based on its amount.",
+        now: function () { return alephUnlocked() ? "Aleph " + fmtN(aleph, 4) : "Not unlocked"; }
+      },
+      {
+        name: "Unlimited",
+        rule: "Every kind of gain is raised to ^0.1. A challenge-only number s (the Subduer) divides your n gain by its own cube root (never by less than 1.001) and gains (seconds in the challenge)^0.2 per second. The only way to clear it is to sacrifice 10% of your Heavenly Number: s resets, and for 30 seconds your p gain is doubled instead.",
+        reward: "Breaks infinity. Your number and every variable are no longer clamped at 1.8e308, ascension points past 2^1024 use a new formula, and Automation gains ascension targets.",
+        now: function () { return brokenInfinity() ? "Infinity is broken" : (challenge5Unlocked() ? "Not completed" : "Locked: complete Challenges 1 to 4 fully"); }
+      }
+    ];
+
+    var chArmed = 0, chArmTimer = null;
+    function disarmCh() { clearTimeout(chArmTimer); chArmed = 0; renderChallenges(); }
+    function armCh(key) {
+      chArmed = key;
+      clearTimeout(chArmTimer);
+      chArmTimer = setTimeout(disarmCh, 3000);
+      renderChallenges();
+      renderChallengeBanner();
+    }
+
+    function resetRun() {
+      number = new OmegaNum(0);
+      p = new OmegaNum(1);
+      levels = { add: 0, mul: 0, pro: 0, exp: 0, hyper: 0, pp: 0 };
+      wallSince = 0;
+    }
+
+    function enterChallenge(id) {
+      if (chDone(id) >= chMax(id)) return;
+      if (id === 5 && !challenge5Unlocked()) return;
+      resetRun();
+      challenges.active = id;
+      chTime = 0; chR = C3_STATIC_R; rAppeared = false; chAleph = 0; sVar = 0; sBuff = 0;
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render(); renderChallenges();
+    }
+
+    function leaveChallenge() {
+      challenges.active = 0;
+      chTime = 0; chR = C3_STATIC_R; rAppeared = false; chAleph = 0; sVar = 0; sBuff = 0;
+      resetRun();
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render(); renderChallenges();
+    }
+
+    function completeChallenge() {
+      var id = challenges.active;
+      challenges.done[id - 1] += 1;
+      var msg = "Challenge " + id + " completed (" + challenges.done[id - 1] + "/" + chMax(id) + ")";
+      if (id === 3 && challenges.done[2] === 1) { rVar = 1; msg += " \u2014 r unlocked"; }
+      if (id === 4 && challenges.done[3] === 1) { aleph = 0; msg += " \u2014 Aleph unlocked in Heaven"; }
+      if (id === 5) msg = "Challenge 5 completed \u2014 you broke infinity!";
+      leaveChallenge();
+      toast(msg);
+    }
+
+    function checkChallenge() {
+      var id = challenges.active;
+      if (!id) return;
+      var g = chGoal(id);
+      if (!g) { leaveChallenge(); return; }
+      if (number.gte(g)) completeChallenge();
+    }
+
+    // Clicking r while it's appeared defeats it at a cost: your number is raised to the ^0.75 power.
+    function defeatR() {
+      if (number.gt(1)) number = number.pow(C3_DEFEAT_EXP);
+      rAppeared = false;
+      if (settings.autosave > 0) save();
+      render();
+    }
+    $("r-click").addEventListener("click", function () {
+      if (!chActive(3) || !rAppeared) return;
+      defeatR();
+    });
+
+    $("s-sac").addEventListener("click", function () {
+      if (!chActive(5) || sBuff > 0 || heavenlyNumber.lt(1)) return;
+      heavenlyNumber = heavenlyNumber.mul(1 - C5_SAC);
+      sVar = 0; sBuff = C5_BUFF_TIME;
+      if (settings.autosave > 0) save();
+      render();
+    });
+
+    var chBannerEl = $("ch-banner");
+    function renderChallengeBanner() {
+      var id = challenges.active;
+      chBannerEl.hidden = !id;
+      if (!id) return;
+      var goal = chGoal(id);
+      $("ch-name").textContent = "Challenge " + id + ": " + CH_INFO[id - 1].name;
+      $("ch-goal").textContent = goal ? "Goal " + fmt(goal, 2) : "";
+      $("ch-leave").textContent = chArmed === "leave" ? "Tap again to leave" : "Leave";
+      var info = "";
+      if (id === 1) info = "p gain \u00d7" + C1_P_GAIN + " \u00b7 the p in the formula is raised to ^" + c1Exponent().toFixed(3);
+      else if (id === 2) info = "Number gain \u00f7" + fmt(c2Divisor(), 2) + " right now (\u00f71.01 every second, compounding)";
+      else if (id === 3) {
+        info = "r sits at a static " + C3_STATIC_R + ", clamping p gain to " + fmtN(1 / C3_STATIC_R, 4) + " and dividing it by " + C3_STATIC_R + " the whole time you're in the challenge. It has a 1/1000 chance each second of appearing" +
+          (rAppeared ? " \u2014 and it just did! Click it to defeat it." : ".");
+      } else if (id === 4) {
+        info = "Aleph " + fmtN(chAleph, 4) + ". p gain and n gain \u00f7" + fmtN(c4Divisor(), 2) + ". q can't boost p or n.";
+      } else if (id === 5) {
+        info = "Every gain is ^0.1. s " + fmtN(sVar, 4) + " divides n gain by " + fmtN(c5Divisor(), 3) + "." +
+          (sBuff > 0 ? " Sacrificed: \u00d72 p gain for " + Math.ceil(sBuff) + "s, s is paused." : "");
+      }
+      $("ch-info").textContent = info;
+      $("ch-s").hidden = id !== 5;
+      if (id === 5) {
+        $("s-sac").disabled = sBuff > 0 || heavenlyNumber.lt(1);
+        $("s-sac").textContent = sBuff > 0 ? "Sacrifice active (" + Math.ceil(sBuff) + "s)" : "Sacrifice 10% of your Heavenly Number";
+      }
+      var showR = id === 3 && rAppeared;
+      $("ch-r").hidden = !showR;
+      if (showR) {
+        $("r-click").textContent = "Defeat r (raises your number to the ^" + C3_DEFEAT_EXP + " power)";
+      }
+    }
+
+    function buildChallenges() {
+      var list = $("challenge-list");
+      CH_INFO.forEach(function (c, i) {
+        var id = i + 1;
+        var art = document.createElement("article");
+        art.className = "upgrade";
+        var head = document.createElement("div"); head.className = "up-head";
+        var h3 = document.createElement("h3"); h3.textContent = "Challenge " + id + ": " + c.name;
+        var prog = document.createElement("span"); prog.className = "up-level";
+        head.appendChild(h3); head.appendChild(prog);
+        var rule = document.createElement("p"); rule.className = "up-desc"; rule.textContent = c.rule;
+        var reward = document.createElement("p"); reward.className = "up-desc";
+        var rb = document.createElement("b"); rb.textContent = "Reward: ";
+        reward.appendChild(rb); reward.appendChild(document.createTextNode(c.reward));
+        var dl = document.createElement("dl"); dl.className = "up-stats";
+        function row(label) {
+          var d = document.createElement("div");
+          var dt = document.createElement("dt"); dt.textContent = label;
+          var dd = document.createElement("dd");
+          d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+          return dd;
+        }
+        var goalEl = row("Next goal"), nowEl = row("Current reward");
+        var btn = document.createElement("button");
+        btn.type = "button"; btn.className = "btn primary up-buy";
+        btn.addEventListener("click", function () {
+          if (challenges.active === id) {
+            if (chArmed === "leave") { chArmed = 0; leaveChallenge(); } else armCh("leave");
+          } else if (chArmed === id) {
+            chArmed = 0; enterChallenge(id);
+          } else armCh(id);
+        });
+        art.appendChild(head); art.appendChild(rule); art.appendChild(reward); art.appendChild(dl); art.appendChild(btn);
+        list.appendChild(art);
+        c.el = { art: art, prog: prog, goal: goalEl, now: nowEl, btn: btn };
+      });
+    }
+
+    function renderChallenges() {
+      CH_INFO.forEach(function (c, i) {
+        var id = i + 1, done = chDone(id), goal = chGoal(id), active = challenges.active === id;
+        c.el.prog.textContent = done + "/" + chMax(id) + " completed";
+        c.el.goal.textContent = goal ? fmt(goal, 2) : "\u2014";
+        c.el.now.textContent = c.now();
+        c.el.art.classList.toggle("ready", active);
+        var locked = id === 5 && !challenge5Unlocked();
+        c.el.btn.disabled = !active && (done >= chMax(id) || locked);
+        if (active) c.el.btn.textContent = chArmed === "leave" ? "Tap again to leave" : "Leave challenge";
+        else if (locked) c.el.btn.textContent = "Locked";
+        else if (done >= chMax(id)) c.el.btn.textContent = "Completed";
+        else c.el.btn.textContent = chArmed === id ? "Tap again to enter (restarts your run)" : "Enter challenge";
+      });
+    }
+
+    buildChallenges();
+    $("open-challenges").addEventListener("click", function () { renderChallenges(); $("challenges").hidden = false; });
+    $("challenges-back").addEventListener("click", function () { $("challenges").hidden = true; });
+    $("ch-leave").addEventListener("click", function () {
+      if (chArmed === "leave") { chArmed = 0; leaveChallenge(); } else armCh("leave");
+    });
+
+    // ---------- research: matter ----------
+    var researchEl = $("research"), matterField = $("matter-field"), matterPanel = $("matter-panel");
+    var MATTER_PER_CLICK = 1, MATTER_MAX_DOTS = 8, MATTER_SPAWN_MS = 1100, MATTER_LIFE_MS = 7000;
+    var lastMatterSpawn = 0, lastMatterUi = 0;
+
+    function renderMatter() {
+      matterPanel.hidden = !matterUnlocked;
+      if (!matterUnlocked) return;
+      $("matter-value").textContent = fmtN(matter, 0);
+      $("mb-p").textContent = matterPMult().toFixed(2);
+      $("mb-q").textContent = matterQMult().toFixed(2);
+      $("mb-exp").textContent = matterExp().toFixed(3);
+    }
+
+    function collectDot(dot) {
+      if (dot._gone) return;
+      dot._gone = true;
+      matter += MATTER_PER_CLICK;
+      if (!brokenInfinity()) matter = Math.min(matter, INF_NUM);
+      dot.classList.add("pop");
+      setTimeout(function () { if (dot.parentNode) dot.parentNode.removeChild(dot); }, 180);
+      renderMatter();
+    }
+
+    // Circles spawn at random spots around the Matter panel and fade away if you miss them.
+    function spawnMatterDot() {
+      if (researchEl.hidden || !matterUnlocked) return;
+      if (matterField.querySelectorAll(".matter-dot").length >= MATTER_MAX_DOTS) return;
+      var fr = matterField.getBoundingClientRect(), pr = matterPanel.getBoundingClientRect();
+      if (fr.width < 120 || fr.height < 120) return;
+      var size = 46 + Math.floor(Math.random() * 22);
+      for (var t = 0; t < 30; t++) {
+        var x = Math.random() * (fr.width - size), y = Math.random() * (fr.height - size);
+        var L = fr.left + x, T = fr.top + y;
+        if (L + size > pr.left - 14 && L < pr.right + 14 && T + size > pr.top - 14 && T < pr.bottom + 14) continue; // keep clear of the panel
+        var dot = document.createElement("button");
+        dot.type = "button"; dot.className = "matter-dot"; dot.setAttribute("aria-label", "Collect matter");
+        dot.style.width = dot.style.height = size + "px";
+        dot.style.left = x + "px"; dot.style.top = y + "px";
+        dot.style.animationDuration = (MATTER_LIFE_MS / 1000) + "s";
+        (function (d) {
+          d.addEventListener("pointerdown", function (e) { e.preventDefault(); collectDot(d); });
+          d.addEventListener("click", function () { collectDot(d); }); // keyboard
+          setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, MATTER_LIFE_MS);
+        })(dot);
+        matterField.appendChild(dot);
+        return;
+      }
+    }
+
+    function clearMatterDots() {
+      Array.prototype.forEach.call(matterField.querySelectorAll(".matter-dot"), function (d) { d.parentNode.removeChild(d); });
+    }
+
+    $("open-research").addEventListener("click", function () {
+      if (!matterUnlocked) {
+        matterUnlocked = true; // opening the tab unlocks the Matter panel
+        toast("Matter panel unlocked");
+        if (settings.autosave > 0) save();
+      }
+      researchEl.hidden = false;
+      renderMatter();
+      lastMatterSpawn = performance.now();
+      for (var i = 0; i < 3; i++) spawnMatterDot();
+    });
+    $("research-back").addEventListener("click", function () { researchEl.hidden = true; clearMatterDots(); });
+
+    // ---------- developer mode ----------
+    var devToggle = $("dev-toggle"), devPanel = $("dev-panel"), devStatus = $("dev-status");
+    var devF = {
+      gain: $("dev-pgain"), speed: $("dev-speed"),
+      number: $("dev-number"), p: $("dev-p"),
+      add: $("dev-add"), mul: $("dev-mul"), pro: $("dev-pro"), exp: $("dev-exp"), hyper: $("dev-hyper"), ap: $("dev-ap"), pp: $("dev-pp"), matter: $("dev-matter"),
+      c1: $("dev-c1"), c2: $("dev-c2"), c3: $("dev-c3"), c4: $("dev-c4"), c5: $("dev-c5")
+    };
+
+    function setDevStatus(msg) { devStatus.textContent = msg; }
+
+    function fillDev() {
+      devToggle.checked = settings.devMode;
+      devPanel.hidden = !settings.devMode;
+      devF.gain.value = String(settings.devPGain);
+      devF.speed.value = String(settings.devSpeed);
+      devF.number.value = number.toString();
+      devF.p.value = p.toString();
+      devF.add.value = String(levels.add);
+      devF.mul.value = String(levels.mul);
+      devF.pro.value = String(levels.pro);
+      devF.exp.value = String(levels.exp);
+      devF.hyper.value = String(levels.hyper);
+      devF.pp.value = String(levels.pp);
+      devF.matter.value = String(matter);
+      devF.ap.value = ascensionPoints.toString();
+      devF.c1.value = String(challenges.done[0]); devF.c2.value = String(challenges.done[1]);
+      devF.c3.value = String(challenges.done[2]); devF.c4.value = String(challenges.done[3]); devF.c5.value = String(challenges.done[4]);
+    }
+
+    function parseOmega(str) {
+      str = str.trim();
+      if (!str) return null;
+      try { var x = new OmegaNum(str); return x.isNaN() ? null : x; } catch (e) { return null; }
+    }
+
+    function parseLevel(str) {
+      str = str.trim();
+      var v = Number(str);
+      return (str !== "" && isFinite(v) && v >= 0 && v <= 1e6 && Math.floor(v) === v) ? v : null;
+    }
+
+    // ---------- developer access (GitHub-verified) ----------
+    // Developer mode is no longer a switch. It turns on only after the signed-in GitHub account
+    // matches DEV_GITHUB_LOGIN (and DEV_GITHUB_ID, if you set it), and off again on sign out.
+    var DEV_GITHUB_LOGIN = "JesusLovesAll13";
+    var DEV_GITHUB_ID = 258048496; // optional, but i'm just using it
+    var DEV_TOKEN_KEY = "pp-game-dev-token-v1";
+    var devVerified = false;
+
+    function setDevAccess(login) {
+      devVerified = !!login;
+      settings.devMode = devVerified;
+      $("dev-signin").hidden = devVerified;
+      $("dev-signedin").hidden = !devVerified;
+      if (devVerified) $("dev-user").textContent = login;
+      updateDerived(); render(); fillDev();
+    }
+
+    function verifyGithub(token) {
+      function fail(msg) { var e = new Error(msg); e.friendly = true; return e; }
+      return fetch("https://api.github.com/user", {
+        headers: { "Accept": "application/vnd.github+json", "Authorization": "Bearer " + token }
+      }).then(function (r) {
+        if (r.status === 401) { var e = fail("GitHub rejected that token."); e.badToken = true; throw e; }
+        if (!r.ok) throw fail("GitHub returned an error (" + r.status + ").");
+        return r.json();
+      }).then(function (u) {
+        var okLogin = u && typeof u.login === "string" && u.login.toLowerCase() === DEV_GITHUB_LOGIN.toLowerCase();
+        var okId = DEV_GITHUB_ID === null || (u && u.id === DEV_GITHUB_ID);
+        if (!okLogin || !okId) { var e = fail("This GitHub account isn't authorized for developer tools."); e.badToken = true; throw e; }
+        return u.login;
+      });
+    }
+
+    function devFail(e) {
+      if (e && e.badToken && storageOK) { try { localStorage.removeItem(DEV_TOKEN_KEY); } catch (x) {} }
+      setDevStatus(e && e.friendly ? e.message : "Couldn't reach GitHub. Check your connection and try again.");
+    }
+
+    $("dev-signin-btn").addEventListener("click", function () {
+      var tokEl = $("dev-token"), tok = tokEl.value.trim();
+      if (!tok) { setDevStatus("Paste your GitHub token first."); return; }
+      setDevStatus("Verifying with GitHub\u2026");
+      verifyGithub(tok).then(function (login) {
+        if (storageOK) {
+          try {
+            if ($("dev-remember").checked) localStorage.setItem(DEV_TOKEN_KEY, tok);
+            else localStorage.removeItem(DEV_TOKEN_KEY);
+          } catch (x) {}
+        }
+        tokEl.value = "";
+        setDevAccess(login);
+        setDevStatus("Developer mode on.");
+      }).catch(devFail);
+    });
+
+    $("dev-signout").addEventListener("click", function () {
+      if (storageOK) { try { localStorage.removeItem(DEV_TOKEN_KEY); } catch (x) {} }
+      setDevAccess(null);
+      setDevStatus("Signed out. Developer mode off, default rates restored.");
+    });
+
+    // Re-verify a remembered token on load.
+    (function () {
+      var tok = null;
+      if (storageOK) { try { tok = localStorage.getItem(DEV_TOKEN_KEY); } catch (x) {} }
+      if (tok) verifyGithub(tok).then(setDevAccess).catch(function (e) { if (e && e.badToken) devFail(e); });
+    })();
+
+    devToggle.addEventListener("change", function () {
+      if (!devVerified) { devToggle.checked = false; return; } // the old switch can no longer grant access
+      settings.devMode = devToggle.checked;
+      saveSettings(); updateDerived(); render(); fillDev();
+      setDevStatus(settings.devMode ? "Developer mode on." : "Developer mode off. Default rates restored.");
+    });
+
+    $("dev-apply-rates").addEventListener("click", function () {
+      var g = Number(devF.gain.value.trim()), s = Number(devF.speed.value.trim());
+      if (devF.gain.value.trim() === "" || !isFinite(g) || g < 0) { setDevStatus("Base p gain must be 0 or more."); return; }
+      if (devF.speed.value.trim() === "" || !isFinite(s) || s <= 0 || s > 1e6) { setDevStatus("Game speed must be above 0 and at most 1,000,000."); return; }
+      settings.devPGain = g; settings.devSpeed = s;
+      saveSettings(); updateDerived(); render();
+      setDevStatus("Rates applied.");
+    });
+
+    $("dev-reset-rates").addEventListener("click", function () {
+      settings.devPGain = DEFAULT_P_RATE; settings.devSpeed = 1;
+      saveSettings(); updateDerived(); render(); fillDev();
+      setDevStatus("Rates reset to defaults.");
+    });
+
+    $("dev-apply-values").addEventListener("click", function () {
+      var n = parseOmega(devF.number.value), pp = parseOmega(devF.p.value);
+      var la = parseLevel(devF.add.value), lm = parseLevel(devF.mul.value), lp = parseLevel(devF.pro.value), le = parseLevel(devF.exp.value), lh = parseLevel(devF.hyper.value), lpp = parseLevel(devF.pp.value);
+      if (!n || n.lt(0)) { setDevStatus("Number must be 0 or more."); return; }
+      if (!pp || pp.lt(1)) { setDevStatus("p must be at least 1."); return; }
+      var apv = parseOmega(devF.ap.value);
+      if (!apv || apv.lt(0)) { setDevStatus("Ascension points must be 0 or more."); return; }
+      if (la === null || lm === null || lp === null || le === null || lh === null || lpp === null) { setDevStatus("Levels must be whole numbers from 0 to 1,000,000."); return; }
+      var cs = [parseLevel(devF.c1.value), parseLevel(devF.c2.value), parseLevel(devF.c3.value), parseLevel(devF.c4.value), parseLevel(devF.c5.value)];
+      if (cs.some(function (c, i) { return c === null || c > CH_MAXES[i]; })) { setDevStatus("Challenge completions must be whole numbers from 0 to 3 (Challenge 5: 0 or 1)."); return; }
+      challenges.done = cs;
+      if (challenges.active && challenges.done[challenges.active - 1] >= chMax(challenges.active)) challenges.active = 0;
+      var mtv = parseOmega(devF.matter.value);
+      if (!mtv || mtv.lt(0)) { setDevStatus("Matter must be 0 or more."); return; }
+      number = n; p = pp; ascensionPoints = apv; matter = mtv.toNumber();
+      levels = { add: la, mul: lm, pro: lp, exp: le, hyper: lh, pp: lpp };
+      updateDerived();
+      if (settings.autosave > 0) save();
+      render();
+      setDevStatus("Values set.");
+    });
+
+    fillDev();
+
+    // ---------- main loop ----------
+    var last = performance.now();
+    var lastAuto = last;
+    var lastHistory = last;
+    var lastStatsUpdate = last;
+    var lastHeavenUi = last;
+    var lastDerived = last;
+    var lastAutoUi = last;
+
+    function frame(now) {
+      advance(((now - last) / 1000) * gameSpeed());
+      last = now;
+      autoTick(now);
+      checkChallenge();
+      if (alephUnlocked() && now - lastDerived >= 500) { updateDerived(); lastDerived = now; }
+      render();
+      if (!heavenEl.hidden && now - lastHeavenUi >= 250) { renderHeavenStats(); lastHeavenUi = now; }
+      if (!researchEl.hidden) {
+        if (now - lastMatterSpawn >= MATTER_SPAWN_MS) { spawnMatterDot(); lastMatterSpawn = now; }
+        if (now - lastMatterUi >= 250) { renderMatter(); lastMatterUi = now; }
+      }
+      if (autoDlg.open && now - lastAutoUi >= 250) { updateAutoInfo(); lastAutoUi = now; }
+      if (settings.autosave > 0 && now - lastAuto >= settings.autosave * 1000) {
+        save(); lastAuto = now;
+      }
+      if (now - lastHistory >= 2000) { recordHistory(); lastHistory = now; }
+      if (statsDlg.open && now - lastStatsUpdate >= 1000) { updateStatsPanel(); lastStatsUpdate = now; }
+      requestAnimationFrame(frame);
+    }
+
+    function saveOnLeave() { if (settings.autosave > 0) save(); }
+    document.addEventListener("visibilitychange", function () { if (document.hidden) saveOnLeave(); });
+    window.addEventListener("pagehide", saveOnLeave);
+
+    render();
+    applyTicker();
+    requestAnimationFrame(function (t) { last = t; lastAuto = t; requestAnimationFrame(frame); });
+  }
+
+  load(0);
+})();
+</script>
+</body>
+</html>

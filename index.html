@@ -964,7 +964,8 @@
 
     // ---------- number formatting ----------
     var ABBR = ["K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd","Td","Qad","Qid","Sxd","Spd","Ocd","Nod",
-                "Vg","Uvg","Dvg","Tvg","Qavg","Qivg","Sxvg","Spvg","Ocvg","Novg","Tg"];
+                "Vg","Uvg","Dvg","Tvg","Qavg","Qivg","Sxvg","Spvg","Ocvg","Novg","Tg","Utg","Dtg","Ttg","Qdtg","Qntg",
+               "Sxtg","Sptg","Octg","Notg"];
 
     function letters(i) {
       var s = "";
@@ -1076,16 +1077,16 @@
       ["1e50", "1e100", "1e308"],
       ["1e20", "1e40", "1e80"],
       ["1e100", "1e200", "1e300"],
-      ["1.5e9", "2.25e18", "6.25e54"],
-      ["1e150"]
+      ["1.5e9", "2.25e27", "7.75e81"],
+      ["1e180"]
     ].map(function (row) { return row.map(function (s) { return new OmegaNum(s); }); });
     var C1_P_GAIN = 0.5, C1_EXP = 0.8, C1_REWARD_EXP = 0.03;          // Challenge 1: p gain x0.5, p^0.8; reward ^(1 + 0.03 per completion)
     var C2_DECAY = 1.01, C2_N_REWARD = 1.1, C2_Q_REWARD = 0.5;        // Challenge 2: n gain / 1.01 each second; reward x1.1^c and q gain x(1 + 0.5c)
-    var C3_STATIC_R = 2, C3_APPEAR_CHANCE = 0.001, C3_DEFEAT_EXP = 0.75; // Challenge 3: r sits at a static 2; 1/1000 chance per second to appear; defeating it (a click) raises n to ^0.75
+    var C3_STATIC_R = 20, C3_APPEAR_CHANCE = 0.001, C3_DEFEAT_EXP = 0.5; // Challenge 3: r sits at a static 20; 1/1000 chance per second to appear; defeating it (a click) raises n to ^0.5
     var C3_RGAIN = 0.002, C3_P_BOOST = 0.1, C3_N_BOOST = 0.3;         // Challenge 3 reward: permanent r
-    var C4_DIV = 10, C4_FEED = 0.0002, ALEPH_RATE = 0.0001;           // Challenge 4: p and n gain / (10 x Aleph); reward: permanent Aleph
-    var C5_GAIN_EXP = 0.1, C5_S_EXP = 0.2, C5_S_MIN_DIV = 1.001;      // Challenge 5: every gain ^0.1; s gains t^0.2 per second; divisor of at least 1.001
-    var C5_BUFF_TIME = 30, C5_SAC = 0.1;                              // sacrificing 10% of the Heavenly Number clears s and doubles p gain for 30 s
+    var C4_DIV = 10, C4_FEED = 0.0004, ALEPH_RATE = 0.001;           // Challenge 4: p and n gain / (10 x Aleph); reward: permanent Aleph
+    var C5_GAIN_EXP = 0.08, C5_S_EXP = 0.22, C5_S_MIN_DIV = 1.005;      // Challenge 5: every gain ^0.1; s gains t^0.2 per second; divisor of at least 1.001
+    var C5_BUFF_TIME = 15, C5_SAC = 0.1;                              // sacrificing 10% of the Heavenly Number clears s and doubles p gain for 30 s
     var HQ_COEF = 0.1;                                                // the heavenly number boosts q gain by 1 + 0.1 * log10(H)
 
     var challenges = { done: [0, 0, 0, 0, 0], active: 0 };
@@ -1254,11 +1255,11 @@
       if (!isFinite(y) || y <= yWall) return ASCEND_THRESHOLD;
       return new OmegaNum(10).pow(new OmegaNum(10).pow(y + 1e-9));
     }
-    var STRIKE_ADD = 1.5, STRIKE_MUL = 1.4, STRIKE_EXP = 1.05, Q_FORMULA_BOOST = 1.15;
+    var STRIKE_ADD = 1.3, STRIKE_MUL = 1.2, STRIKE_EXP = 1.03333, Q_FORMULA_BOOST = 1.12;
     var Q_FORMULA_PER_LOG = 0.03; // the formula boost from q grows by this much per power of ten of q
     var Q_SELF_EXP = 0.1;         // q also boosts p gain by q^0.1, based on itself
-    var AUTO_HEAVEN_COEF = 0.01;  // Automatic: heavenly number per second = coef * sqrt(p * q)
-    var PERFECTION_ADD_MUL = 2, PERFECTION_MUL = 5 / 3, PERFECTION_EXP = 1.05, PERFECTION_Q_MUL = 1.25;
+    var AUTO_HEAVEN_COEF = 0.004;  // Automatic: heavenly number per second = coef * sqrt(p * q)
+    var PERFECTION_ADD_MUL = 1.6, PERFECTION_MUL = 4 / 3, PERFECTION_EXP = 1.03, PERFECTION_Q_MUL = 1.2;
 
     // Number very slightly boosts p gain: log10(n^0.00001) = 0.00001 * log10(n), never below 0.
     // Soft capped, and MUCH harder past 10^308 (right around where doubles start to overflow) \u2014
@@ -1366,9 +1367,9 @@
       potency = 1 + 0.1 * effLevels("pro");
       addBonus = 0.2 * effLevels("add") * potency;
       mulFactor = 1 + 0.1 * effLevels("mul");
-      expBoost = Math.pow(1.02, effLevels("exp"));
-      hyperBoost = Math.pow(1.05, effLevels("hyper"));
-      pRate = baseRate() * (1 + 0.08 * effLevels("mul")) * (1 + 0.16 * effLevels("pro"));
+      expBoost = Math.pow(1.012, effLevels("exp"));
+      hyperBoost = Math.pow(1.03, effLevels("hyper"));
+      pRate = baseRate() * (1 + 0.06 * effLevels("mul")) * (1 + 0.12 * effLevels("pro"));
     }
     updateDerived();
 
@@ -2027,7 +2028,7 @@
     }
 
     var LENGTH_UNITS = [
-      ["Planck lengths", 1.616255e-35], ["yoctometers", 1e-24], ["attometers", 1e-18],
+      ["Planck lengths", 1.616255e-35], ["yoctometers", 1e-24], ["zeptometers", 1e-21], ["attometers", 1e-18],
       ["femtometers", 1e-15], ["picometers", 1e-12], ["nanometers", 1e-9],
       ["micrometers", 1e-6], ["millimeters", 1e-3], ["centimeters", 1e-2],
       ["meters", 1], ["kilometers", 1e3], ["megameters", 1e6], ["gigameters", 1e9],
@@ -2524,6 +2525,7 @@
       { t: "Ascension points now accepted at 3 out of 5 heavens.", req: function () { return hasAscendedUnlocked; } },
       { t: "Rumor: the Heavenly Number is just a normal number that took a really good vacation.", req: function () { return hasAscendedUnlocked; } },
       { t: "Breaking: the number you are looking for is currently on screen." },
+      { t: "Aleph reportedly became ruler of all numbers." },
       { t: "Experts recommend taking a break from the game. The number will still be here. Probably larger." }
     ];
 
@@ -2604,7 +2606,7 @@
       },
       {
         name: "The variable r",
-        rule: "A variable r sits at a static 2 the whole time you're in the challenge, clamping p gain to 1/2 and dividing it by 2 on top of that. Each second it has a 1/1000 chance of appearing \u2014 when it does, click it to defeat it, which raises your number to the ^0.75 power as the cost.",
+        rule: "A variable r sits at a static 20 the whole time you're in the challenge, clamping p gain to 1/20 of itself and dividing it by 2 on top of that. Each second it has a 1/1000 chance of appearing \u2014 when it does, click it to defeat it, which raises your number to the ^0.75 power as the cost.",
         reward: "Unlocks r as a permanent variable that is always negative. It boosts p gain and n gain, and grows over time, both scaled by your completions.",
         now: function () { return rUnlocked() ? "p gain \u00d7" + rPMult().toFixed(2) + ", n gain \u00d7" + rNMult().toFixed(2) : "Not unlocked"; }
       },

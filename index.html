@@ -1263,9 +1263,9 @@ var CUSTOM_DEFAULT = { bg: "#1b1030", panel: "#26193d", ink: "#f3eaff", accent: 
     ].map(function (row) { return row.map(function (s) { return new OmegaNum(s); }); });
     var C1_P_GAIN = 0.5, C1_EXP = 0.8, C1_REWARD_EXP = 0.03;          // Challenge 1: p gain x0.5, p^0.8; reward ^(1 + 0.03 per completion)
     var C2_DECAY = 1.01, C2_N_REWARD = 1.1, C2_Q_REWARD = 0.5;        // Challenge 2: n gain / 1.01 each second; reward x1.1^c and q gain x(1 + 0.5c)
-    var C3_STATIC_R = 2, C3_APPEAR_CHANCE = 0.001, C3_DEFEAT_EXP = 0.75; // Challenge 3: r starts at 2 and grows on its own; 1/1000 chance per second to appear; defeating it (a click) raises n to ^0.75
+    var C3_STATIC_R = 1, C3_APPEAR_CHANCE = 0.001, C3_DEFEAT_EXP = 0.75; // Challenge 3: r starts at 2 and grows on its own; 1/1000 chance per second to appear; defeating it (a click) raises n to ^0.75
     var C3_R_GROWTH = 0.01;    // r's own growth rate while inside the challenge (per second)
-    var C3_P_CLAMP = 0.0005;   // p gain is capped at this MAXIMUM (then divided by the growing r) while inside
+    var C3_P_CLAMP = 0.005;   // p gain is capped at this MAXIMUM (then divided by the growing r) while inside
     var C3_RGAIN = 0.002, C3_P_BOOST = 0.1, C3_N_BOOST = 0.3;         // Challenge 3 reward: permanent r
     var C4_DIV = 10, C4_FEED = 0.0002, ALEPH_RATE = 0.0001;           // Challenge 4: p and n gain / (10 x Aleph); reward: permanent Aleph
     var C5_GAIN_EXP = 0.1, C5_S_EXP = 0.2, C5_S_MIN_DIV = 1.001;      // Challenge 5: every gain ^0.1; s gains t^0.2 per second; divisor of at least 1.001

@@ -50,5 +50,5 @@ WIP....
 
 | CLARIFICATIONS & CREDITS |
 Also, there is a upgrade template in ascension for now that does cost 1 AP, it gives p gain once again. 
-The current endgame of this commit is 1 ap/1.8e308 n, taking roughly 4-6 hours to get if i am not mistaken from testing.
+The current endgame of this commit is 1 EP/1.8e308 AP, taking roughly 4-6 hours to get if i am not mistaken from testing.
 Time of publish was roughly 5:30 at 9/19/26, made by c4ppy14/JesusLovesAll13.
